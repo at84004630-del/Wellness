@@ -39,6 +39,7 @@ export default function VoiceCompanionPage() {
   const [recognitionSupported, setRecognitionSupported] = useState<boolean>(false);
   const recognitionRef = useRef<any>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
+  const handleUserUtteranceRef = useRef<(text: string) => void>(() => {});
 
   // Text-to-speech for elderly user
   const speakText = useCallback((text: string) => {
@@ -76,7 +77,7 @@ export default function VoiceCompanionPage() {
         recognition.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript;
           setSpokenInput(transcript);
-          handleUserUtterance(transcript);
+          handleUserUtteranceRef.current(transcript);
         };
 
         recognition.onerror = () => {
@@ -86,7 +87,7 @@ export default function VoiceCompanionPage() {
 
         recognition.onend = () => {
           setIsListening(false);
-          if (aiState === 'listening') setAiState('idle');
+          setAiState((prev) => (prev === 'listening' ? 'idle' : prev));
         };
 
         recognitionRef.current = recognition;
@@ -148,6 +149,8 @@ export default function VoiceCompanionPage() {
       speakText(aiReply);
     }, 900);
   };
+
+  handleUserUtteranceRef.current = handleUserUtterance;
 
   const handlePresetChoice = (presetText: string) => {
     handleUserUtterance(presetText);

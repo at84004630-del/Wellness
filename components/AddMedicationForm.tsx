@@ -19,6 +19,7 @@ import {
   X
 } from 'lucide-react';
 import { checkPreMedicationConflict, ClinicalConflictResult } from '@/lib/conflict-checker';
+import { sanitizeText } from '@/lib/sanitizer';
 import { PillShape } from '@/types';
 
 interface AddMedicationFormProps {
@@ -123,13 +124,17 @@ export default function AddMedicationForm({ onSuccess, onCancel }: AddMedication
       setConditionId(finalCondId);
     }
 
+    const cleanName = sanitizeText(medName.trim(), 100);
+    const cleanDosage = sanitizeText(dosage.trim(), 40) || '10 mg';
+    const cleanInstructions = sanitizeText(instructions.trim(), 300) || `Take 1 tablet in the ${timeOfDay.toLowerCase()} (${timeSlot}) ${withFood ? 'with food' : 'without food'}.`;
+
     addPrescriptionAndMedication({
       doctorId: finalDocId,
       conditionId: finalCondId,
-      medicationName: medName.trim(),
-      genericName: medName.trim(),
-      dosage: dosage.trim() || '10 mg',
-      instructions: instructions.trim() || `Take 1 tablet in the ${timeOfDay.toLowerCase()} (${timeSlot}) ${withFood ? 'with food' : 'without food'}.`,
+      medicationName: cleanName,
+      genericName: cleanName,
+      dosage: cleanDosage,
+      instructions: cleanInstructions,
       purpose: `Prescribed therapy regimen for Eleanor Vance.`,
       durationDays: isOngoing ? 'ongoing' : durationDays,
       timeSlot: timeSlot,

@@ -2,13 +2,15 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
 describe('Wellness Relational EHR & Voice State Engine', () => {
-  // Mock store state logic
+  // Mock store state logic matching lib/store.ts
   function createStore() {
     let state = {
       doctors: [{ id: 'doc-1', name: 'Dr. Robert Chen', specialty: 'Cardiology' }],
       conditions: [{ id: 'cond-1', name: 'Essential Hypertension', status: 'active' }],
-      medications: [{ id: 'med-1', name: 'Lisinopril', dosage: '10mg', doctorId: 'doc-1', conditionId: 'cond-1' }],
+      prescriptions: [{ id: 'rx-1', doctorId: 'doc-1', conditionId: 'cond-1', dateIssued: '2025-01-10' }],
+      medications: [{ id: 'med-1', name: 'Lisinopril', dosage: '10mg', doctorId: 'doc-1', conditionId: 'cond-1', prescriptionId: 'rx-1' }],
       schedules: [{ id: 's-1', medicationId: 'med-1', status: 'pending', timeSlot: '08:00 AM' }],
+      symptoms: [],
       alerts: [],
     };
 
@@ -18,8 +20,10 @@ describe('Wellness Relational EHR & Voice State Engine', () => {
         state = {
           doctors: [],
           conditions: [],
+          prescriptions: [],
           medications: [],
           schedules: [],
+          symptoms: [],
           alerts: [{ id: 'a-reset', title: 'Blank Slate Initialized' }],
         };
       },
@@ -29,16 +33,23 @@ describe('Wellness Relational EHR & Voice State Engine', () => {
         state.schedules.push({ id: `s-${Date.now()}`, medicationId: id, status: 'pending', timeSlot: med.timeSlot || '08:00 AM' });
         return id;
       },
-      parseVoiceUtterance: (utterance) => {
-        const lower = utterance.toLowerCase();
-        const tookMed = ['took', 'take', 'swallowed', 'had my pill'].some(t => lower.includes(t));
-        let symptom = null;
-        if (lower.includes('knee') || lower.includes('joint')) {
-          symptom = 'Knee Discomfort';
-        } else if (lower.includes('dizzy') || lower.includes('lightheaded')) {
-          symptom = 'Dizziness';
-        }
-        return { tookMed, symptom };
+      deleteMedication: (medId) => {
+        state.medications = state.medications.filter(m => m.id !== medId);
+        // Cascade delete associated schedules
+        state.schedules = state.schedules.filter(s => s.medicationId !== medId);
+      },
+      triggerNextReminderNow: () => {
+        const nextPending = state.schedules.find(s => s.status === 'pending');
+        if (!nextPending) return { reminderText: 'All scheduled doses for today have been completed!' };
+        const med = state.medications.find(m => m.id === nextPending.medicationId);
+        return {
+          reminderText: `It is time for your ${med ? med.name : 'medication'}.`,
+        };
+      },
+      logSymptom: (note, severity = 'moderate') => {
+        const symptom = { id: `sym-${Date.now()}`, note, severity, timestamp: new Date().toISOString() };
+        state.symptoms.push(symptom);
+        return symptom;
       },
     };
   }
@@ -49,6 +60,7 @@ describe('Wellness Relational EHR & Voice State Engine', () => {
     store.resetData();
     assert.equal(store.getState().medications.length, 0);
     assert.equal(store.getState().doctors.length, 0);
+    assert.equal(store.getState().schedules.length, 0);
     assert.equal(store.getState().alerts.length, 1);
   });
 
@@ -68,17 +80,24 @@ describe('Wellness Relational EHR & Voice State Engine', () => {
     assert.equal(addedSched?.timeSlot, '07:00 PM');
   });
 
-  test('parseVoiceUtterance handles dual intents: intake + physical symptom', () => {
+  test('deleteMedication cascades and purges associated daily schedules', () => {
     const store = createStore();
-    const result = store.parseVoiceUtterance('I just took it, but my knee hurts today.');
-    assert.equal(result.tookMed, true);
-    assert.equal(result.symptom, 'Knee Discomfort');
+    assert.equal(store.getState().schedules.length, 1);
+    store.deleteMedication('med-1');
+    assert.equal(store.getState().medications.length, 0);
+    assert.equal(store.getState().schedules.length, 0);
   });
 
-  test('parseVoiceUtterance detects dizziness symptom correctly', () => {
+  test('triggerNextReminderNow generates dynamic prompt for pending medication', () => {
     const store = createStore();
-    const result = store.parseVoiceUtterance('I had my pill but feel a little dizzy standing up');
-    assert.equal(result.tookMed, true);
-    assert.equal(result.symptom, 'Dizziness');
+    const { reminderText } = store.triggerNextReminderNow();
+    assert.match(reminderText, /Lisinopril/);
+  });
+
+  test('logSymptom registers new ambient voice telemetry entry', () => {
+    const store = createStore();
+    store.logSymptom('Mild stiffness in left knee', 'mild');
+    assert.equal(store.getState().symptoms.length, 1);
+    assert.equal(store.getState().symptoms[0].note, 'Mild stiffness in left knee');
   });
 });

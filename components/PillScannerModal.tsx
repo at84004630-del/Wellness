@@ -49,6 +49,7 @@ export default function PillScannerModal({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [cameraActive, setCameraActive] = useState<boolean>(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
@@ -112,8 +113,9 @@ export default function PillScannerModal({
   const startCamera = useCallback(async () => {
     try {
       setCameraError(null);
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
       }
 
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -130,6 +132,7 @@ export default function PillScannerModal({
       };
 
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = mediaStream;
       setStream(mediaStream);
       setCameraActive(true);
 
@@ -152,22 +155,23 @@ export default function PillScannerModal({
 
   // Stop camera when closing
   const stopCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
     }
+    setStream(null);
     setCameraActive(false);
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
-  }, [stream]);
+  }, []);
 
   useEffect(() => {
     startCamera();
     return () => {
       stopCamera();
     };
-  }, [facingMode]);
+  }, [startCamera, stopCamera]);
 
   // Toggle Camera Facing Mode (Front vs Back)
   const toggleFacingMode = () => {
@@ -410,6 +414,7 @@ export default function PillScannerModal({
 
           {/* Captured Freeze Frame */}
           {capturedImage && (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={capturedImage}
               alt="Captured Pill Frame"
