@@ -4,7 +4,6 @@ import {
   HeartHandshake, 
   LayoutDashboard, 
   Pill, 
-  CalendarDays, 
   ShieldCheck, 
   ArrowLeft,
   UserCheck
