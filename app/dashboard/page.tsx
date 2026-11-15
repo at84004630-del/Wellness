@@ -17,7 +17,10 @@ import {
   ChevronRight,
   Send,
   Eye,
-  Bell
+  Bell,
+  Key,
+  Cpu,
+  Check
 } from 'lucide-react';
 
 export default function CaregiverDashboardPage() {
@@ -34,6 +37,27 @@ export default function CaregiverDashboardPage() {
 
   const [activeTab, setActiveTab] = useState<'overview' | 'medications' | 'audit' | 'appointments'>('overview');
   const [simulatedEmailSent, setSimulatedEmailSent] = useState<string | null>(null);
+
+  // Gemini API Key management
+  const [geminiKey, setGeminiKey] = useState<string>('');
+  const [isEditingKey, setIsEditingKey] = useState<boolean>(false);
+  const [keySaveToast, setKeySaveToast] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('wellness_gemini_api_key');
+      if (stored) setGeminiKey(stored);
+    }
+  }, []);
+
+  const handleSaveGeminiKey = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wellness_gemini_api_key', geminiKey.trim());
+    }
+    setKeySaveToast(true);
+    setIsEditingKey(false);
+    setTimeout(() => setKeySaveToast(false), 3000);
+  };
 
   const takenCount = schedules.filter(s => s.status === 'taken').length;
   const pendingCount = schedules.filter(s => s.status === 'pending').length;
@@ -285,20 +309,100 @@ export default function CaregiverDashboardPage() {
             </div>
 
             {/* AI Vision Verification Showcase Banner */}
-            <div className="bg-gradient-to-r from-emerald-900 to-slate-900 text-white p-6 rounded-2xl shadow-sm relative overflow-hidden">
-              <div className="relative z-10 max-w-xl">
-                <div className="inline-flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full mb-3 border border-emerald-400/30">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Catalyst AI Hackathon Core Feature
+            <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-950 text-white p-6 sm:p-7 rounded-2xl shadow-sm relative overflow-hidden border border-emerald-900/50">
+              <div className="relative z-10 max-w-2xl space-y-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-400/30">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Google Gemini Multimodal Vision Core
+                  </div>
+                  <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                    geminiKey 
+                      ? 'bg-emerald-900/80 text-emerald-300 border-emerald-500' 
+                      : 'bg-amber-900/60 text-amber-300 border-amber-500/50'
+                  }`}>
+                    {geminiKey ? 'Gemini 2.5 Active' : 'Gemini Key Configurable'}
+                  </span>
                 </div>
-                <h3 className="text-xl font-bold tracking-tight">AI Computer-Vision Pill Recognition</h3>
-                <p className="text-sm text-slate-300 mt-2 leading-relaxed">
-                  Unlike traditional apps where seniors merely tap a checkbox, Wellness requires holding the prescribed medication to the camera. Our vision model verifies pill color, geometry, and manufacturer imprints to eliminate lethal medication confusion.
-                </p>
-                <div className="mt-4 flex items-center gap-4 text-xs font-medium text-emerald-200">
-                  <span>✓ Color RGB match</span>
-                  <span>✓ 2D Contour Shape analysis</span>
-                  <span>✓ OCR Imprint Verification</span>
+
+                <div>
+                  <h3 className="text-xl sm:text-2xl font-black tracking-tight">
+                    Next-Gen AI Pill Identification & Verification
+                  </h3>
+                  <p className="text-sm text-slate-300 mt-2 leading-relaxed">
+                    Powered by Google Gemini&apos;s frontier multimodal intelligence. Inspects pill colorimetry, 2D geometric aspect ratios, and manufacturer imprints directly from camera frames to eliminate lethal polypharmacy mix-ups.
+                  </p>
+                </div>
+
+                {/* Gemini API Key inline config */}
+                <div className="bg-slate-900/90 border border-slate-700/80 p-4 rounded-xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                      <Key className="w-3.5 h-3.5 text-emerald-400" />
+                      Gemini API Key Connection
+                    </span>
+                    {!isEditingKey && (
+                      <button
+                        onClick={() => setIsEditingKey(true)}
+                        className="text-xs text-emerald-400 hover:text-emerald-300 underline font-semibold"
+                      >
+                        {geminiKey ? 'Update Key' : 'Connect Key'}
+                      </button>
+                    )}
+                  </div>
+
+                  {isEditingKey ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="password"
+                        placeholder="Paste your Gemini API key (AIzaSy...)"
+                        value={geminiKey}
+                        onChange={(e) => setGeminiKey(e.target.value)}
+                        className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-hidden focus:border-emerald-500"
+                      />
+                      <button
+                        onClick={handleSaveGeminiKey}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setIsEditingKey(false)}
+                        className="bg-slate-800 text-slate-300 hover:text-white text-xs px-3 py-2 rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between text-xs">
+                      <p className="text-slate-400">
+                        {geminiKey 
+                          ? `Configured: ${geminiKey.substring(0, 8)}••••••••••••` 
+                          : 'No custom key entered. Using built-in high-accuracy vision heuristics.'}
+                      </p>
+                      <a
+                        href="https://aistudio.google.com/app/apikey"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-emerald-400 hover:underline text-[11px] font-semibold"
+                      >
+                        Get Free Key →
+                      </a>
+                    </div>
+                  )}
+
+                  {keySaveToast && (
+                    <p className="text-xs text-emerald-400 font-bold flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5" />
+                      Gemini API key saved successfully for your sessions!
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-emerald-300">
+                  <span>✓ Multimodal Visual Inference</span>
+                  <span>✓ 2D Contour Geometry</span>
+                  <span>✓ Real-time Mismatch Intercept</span>
                 </div>
               </div>
             </div>
