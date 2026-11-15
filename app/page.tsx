@@ -111,27 +111,27 @@ export default function EntryRoleSelectorPage() {
                 Elderly Companion
               </h3>
               <p className="mt-2 text-slate-600 text-sm leading-relaxed">
-                Ultra-accessible, distraction-free interface engineered for seniors. Features high-contrast visuals, giant touch targets, voice-assisted instructions, and real-time AI camera pill scanning.
+                Zero-strain, voice-first companion tailored for elderly seniors with arthritis, tremors, or tech anxiety. Features a warm glowing voice orb, dual medicine/symptom speech comprehension, and empathetic audio guidance.
               </p>
 
               <div className="mt-6 space-y-3 pt-4 border-t border-slate-100">
                 <div className="flex items-center gap-3 text-sm text-slate-700">
                   <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
-                    <Eye className="w-3.5 h-3.5" />
+                    <Sparkles className="w-3.5 h-3.5" />
                   </div>
-                  <span><strong>AI Visual Pill Scan:</strong> Verifies pill shape & color before ingestion</span>
+                  <span><strong>Empathetic Voice AI:</strong> Just speak naturally: &quot;I took it, but my knee hurts&quot;</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-slate-700">
                   <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
                     <Activity className="w-3.5 h-3.5" />
                   </div>
-                  <span><strong>Large High-Contrast UI:</strong> Easy-to-read text without clutter</span>
+                  <span><strong>Dual-Intent Health Parsing:</strong> Logs medicine and symptoms concurrently</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-slate-700">
                   <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
                     <UserCheck className="w-3.5 h-3.5" />
                   </div>
-                  <span><strong>Active Patient:</strong> Eleanor Vance (Age 82)</span>
+                  <span><strong>Active Senior:</strong> Eleanor Vance (Age 82)</span>
                 </div>
               </div>
             </div>

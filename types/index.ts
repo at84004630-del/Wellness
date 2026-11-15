@@ -61,8 +61,8 @@ export interface MedicationLog {
   patientId: string;
   timestamp: string;
   status: 'taken' | 'missed' | 'flagged';
-  verificationMethod: 'ai_vision' | 'caregiver_override' | 'manual_elderly' | 'manual_caregiver' | 'system_automated';
-  aiConfidence?: number; // 0.00 - 1.00
+  verificationMethod: 'voice_ai' | 'ai_vision' | 'caregiver_override' | 'manual_elderly' | 'manual_caregiver' | 'system_automated';
+  aiConfidence?: number;
   aiVerdict?: VerificationVerdict;
   aiVerificationDetails?: {
     detectedColor: string;
@@ -73,7 +73,38 @@ export interface MedicationLog {
     imprintMatch: boolean;
     notes: string;
     capturedImage?: string;
+    voiceTranscription?: string;
   };
+}
+
+export type SymptomCategory = 'pain' | 'mobility' | 'dizziness' | 'fatigue' | 'digestive' | 'mood' | 'general';
+export type SymptomSeverity = 'mild' | 'moderate' | 'severe';
+
+export interface SymptomLog {
+  id: string;
+  patientId: string;
+  timestamp: string;
+  symptom: string; // e.g., "Knee joint stiffness & discomfort"
+  category: SymptomCategory;
+  severity: SymptomSeverity;
+  rawUtterance: string; // "I just took it, but my knee hurts today"
+  aiExtractedIntent: string;
+  reportedTimeFormatted: string;
+}
+
+export interface AiCompiledBrief {
+  generatedAt: string;
+  timeWindow: string; // e.g., "Past 14 Days"
+  summary: string;
+  frequentSymptoms: Array<{
+    name: string;
+    count: number;
+    severity: SymptomSeverity;
+    trend: 'increasing' | 'stable' | 'decreasing';
+  }>;
+  medicationAdherenceRate: number;
+  clinicalDiscussionPoints: string[];
+  recommendedPhysicianFocus: string;
 }
 
 export interface Appointment {
@@ -86,12 +117,24 @@ export interface Appointment {
   time: string;
   notes?: string;
   status: 'upcoming' | 'completed' | 'cancelled';
+  aiCompiledBrief?: AiCompiledBrief;
+}
+
+export type BehavioralState = 'active_responsive' | 'resting_comfortable' | 'unresponsive_alert' | 'requires_checkin';
+
+export interface BehavioralStatus {
+  status: BehavioralState;
+  lastCheckIn: string;
+  lastVoiceNote: string;
+  moodRating: 'positive' | 'neutral' | 'struggling';
+  alertDispatched: boolean;
+  statusLabel: string;
 }
 
 export interface CaregiverAlert {
   id: string;
   patientId: string;
-  type: 'missed_dose' | 'mismatch_detected' | 'refill_needed' | 'appointment';
+  type: 'missed_dose' | 'mismatch_detected' | 'refill_needed' | 'appointment' | 'symptom_warning' | 'unresponsive_checkin';
   severity: 'low' | 'medium' | 'high' | 'critical';
   title: string;
   message: string;
@@ -99,3 +142,11 @@ export interface CaregiverAlert {
   read: boolean;
 }
 
+export interface VoiceChatMessage {
+  id: string;
+  sender: 'ai' | 'elderly';
+  text: string;
+  timestamp: string;
+  extractedSymptom?: string;
+  medicationConfirmed?: string;
+}
