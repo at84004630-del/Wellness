@@ -84,6 +84,17 @@ Do not include markdown code fences or backticks. Return ONLY the JSON object.
         let apiResponse: any = null;
         let lastError: any = null;
 
+        const parts: any[] = [];
+        if (cleanBase64 && cleanBase64.length > 50) {
+          parts.push({
+            inlineData: {
+              mimeType: 'image/jpeg',
+              data: cleanBase64,
+            },
+          });
+        }
+        parts.push({ text: prompt });
+
         for (const model of modelsToTry) {
           try {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -93,15 +104,7 @@ Do not include markdown code fences or backticks. Return ONLY the JSON object.
               body: JSON.stringify({
                 contents: [
                   {
-                    parts: [
-                      {
-                        inlineData: {
-                          mimeType: 'image/jpeg',
-                          data: cleanBase64,
-                        },
-                      },
-                      { text: prompt },
-                    ],
+                    parts,
                   },
                 ],
                 generationConfig: {
