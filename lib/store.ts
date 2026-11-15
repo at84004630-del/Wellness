@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { 
   User, 
+  Doctor,
+  Condition,
+  Prescription,
+  MedicalHistoryEvent,
+  AiPatientBrief,
   Medication, 
   DoseSchedule, 
   MedicationLog, 
@@ -8,11 +13,15 @@ import {
   CaregiverAlert,
   SymptomLog,
   BehavioralStatus,
-  VoiceChatMessage,
-  VerificationVerdict
+  VoiceChatMessage
 } from '@/types';
 import { 
   mockUsers, 
+  mockDoctors,
+  mockConditions,
+  mockPrescriptions,
+  mockMedicalHistory,
+  mockAiPatientBrief,
   mockMedications, 
   mockSchedules, 
   mockLogs, 
@@ -29,6 +38,16 @@ interface WellnessState {
   setCurrentUser: (user: User) => void;
   switchUserRole: (role: 'caregiver' | 'elderly') => void;
 
+  // Relational EHR System
+  doctors: Doctor[];
+  conditions: Condition[];
+  prescriptions: Prescription[];
+  medicalHistory: MedicalHistoryEvent[];
+  aiPatientBrief: AiPatientBrief;
+  getDoctor: (id: string) => Doctor | undefined;
+  getCondition: (id: string) => Condition | undefined;
+  getPrescription: (id: string) => Prescription | undefined;
+
   // Medications & Schedules
   medications: Medication[];
   schedules: DoseSchedule[];
@@ -36,21 +55,22 @@ interface WellnessState {
   markDoseTakenManual: (scheduleId: string) => void;
   markDoseMissed: (scheduleId: string, reason?: string) => void;
 
-  // Symptoms & AI Health Tracking (Pivot)
+  // Symptoms & AI Health Tracking
   symptoms: SymptomLog[];
   addSymptomLog: (symptomData: Omit<SymptomLog, 'id' | 'timestamp' | 'reportedTimeFormatted'>) => void;
 
-  // Behavioral & Ambient Presence Status (Pivot)
+  // Behavioral & Ambient Presence Status
   behavioralStatus: BehavioralStatus;
   setBehavioralStatus: (status: Partial<BehavioralStatus>) => void;
 
-  // Pre-Appointment AI Briefs & Appointments (Pivot)
+  // Pre-Appointment AI Briefs & Appointments
   appointments: Appointment[];
   updateAppointmentBrief: (appointmentId: string, briefNotes: string) => void;
 
   // Conversational Voice AI Messages
   voiceChatMessages: VoiceChatMessage[];
   addVoiceChatMessage: (msg: Omit<VoiceChatMessage, 'id' | 'timestamp'>) => void;
+  getContextualVoicePrompt: () => string;
 
   // Voice Check-In Processing Core (Parses dual intents: medication intake + symptoms)
   processVoiceCheckIn: (utterance: string) => {
@@ -76,6 +96,17 @@ export const useWellnessStore = create<WellnessState>((set, get) => ({
     set({ currentUser: targetUser });
   },
 
+  // Relational EHR entities
+  doctors: mockDoctors,
+  conditions: mockConditions,
+  prescriptions: mockPrescriptions,
+  medicalHistory: mockMedicalHistory,
+  aiPatientBrief: mockAiPatientBrief,
+
+  getDoctor: (id: string) => get().doctors.find((d) => d.id === id),
+  getCondition: (id: string) => get().conditions.find((c) => c.id === id),
+  getPrescription: (id: string) => get().prescriptions.find((p) => p.id === id),
+
   medications: mockMedications,
   schedules: mockSchedules,
   logs: mockLogs,
@@ -88,10 +119,19 @@ export const useWellnessStore = create<WellnessState>((set, get) => ({
     {
       id: 'msg-init',
       sender: 'ai',
-      text: "Good morning, Eleanor! It's time for your morning medicines (Lisinopril, Metformin, and Vitamin D3). How are you feeling today?",
+      text: "Good morning, Eleanor! It's time for the blood pressure medicine Dr. Chen prescribed for your hypertension, and the joint support from Dr. Watson. How is your knee feeling today?",
       timestamp: '08:00 AM',
+      contextualPrescriptionNote: "Linked: Lisinopril 10mg (Dr. Robert Chen - Hypertension) & Vitamin D3 (Dr. Emily Watson - Joint Recovery)",
     },
   ],
+
+  getContextualVoicePrompt: () => {
+    const morningSchedules = get().schedules.filter((s) => s.label === 'Morning' && s.status === 'pending');
+    if (morningSchedules.length === 0) {
+      return "All morning medicines have been safely recorded, Eleanor! How is your right knee feeling after walking around today?";
+    }
+    return "Good morning, Eleanor! It's time for the blood pressure medicine Dr. Chen prescribed for your hypertension, and your daily diabetes tablet from Dr. Santos. How is your knee feeling today?";
+  },
 
   addVoiceChatMessage: (msg) => {
     const newMsg: VoiceChatMessage = {
@@ -135,6 +175,7 @@ export const useWellnessStore = create<WellnessState>((set, get) => ({
     }));
   },
 
+  // Dual-Intent NLP Parser with Deep Relational EHR Context
   processVoiceCheckIn: (utterance: string) => {
     const lower = utterance.toLowerCase();
     const state = get();
@@ -143,17 +184,17 @@ export const useWellnessStore = create<WellnessState>((set, get) => ({
     const tookMedTerms = ['took', 'take', 'taken', 'swallowed', 'finished', 'drank with water', 'had my pill', 'had my medicine', 'just took'];
     const hasMedIntakeIntent = tookMedTerms.some((term) => lower.includes(term));
 
-    // 2. Detect Symptoms & Physical Limitations Intent
+    // 2. Detect Physical Symptoms
     let detectedSymptom: string | null = null;
     let symptomCategory: 'pain' | 'mobility' | 'dizziness' | 'fatigue' | 'digestive' | 'mood' = 'pain';
     let severity: 'mild' | 'moderate' | 'severe' = 'mild';
 
     if (lower.includes('knee') || lower.includes('joint') || lower.includes('leg') || lower.includes('arthrit')) {
-      detectedSymptom = 'Right Knee Joint Discomfort / Stiffness';
+      detectedSymptom = 'Right Knee Joint Discomfort / Stiffness (Post-Arthroscopy)';
       symptomCategory = 'pain';
       severity = 'moderate';
     } else if (lower.includes('dizzy') || lower.includes('woozy') || lower.includes('lightheaded') || lower.includes('faint')) {
-      detectedSymptom = 'Postural Dizziness / Lightheadedness';
+      detectedSymptom = 'Postural Dizziness / Lightheadedness (Post-Lisinopril)';
       symptomCategory = 'dizziness';
       severity = 'moderate';
     } else if (lower.includes('back') || lower.includes('spine')) {
@@ -174,7 +215,7 @@ export const useWellnessStore = create<WellnessState>((set, get) => ({
       severity = 'mild';
     }
 
-    // 3. Update Medication Schedule if taken
+    // 3. Mark Medication Schedule Taken
     if (hasMedIntakeIntent) {
       const now = new Date();
       const updatedSchedules = state.schedules.map((s) =>
@@ -200,7 +241,7 @@ export const useWellnessStore = create<WellnessState>((set, get) => ({
           colorMatch: true,
           shapeMatch: true,
           imprintMatch: true,
-          notes: `Voice verified: "${utterance}" parsed by Ambient NLP.`,
+          notes: `Voice verified: "${utterance}" parsed with EHR context (Dr. Chen - Lisinopril 10mg).`,
           voiceTranscription: utterance,
         },
       };
@@ -211,7 +252,7 @@ export const useWellnessStore = create<WellnessState>((set, get) => ({
       });
     }
 
-    // 4. Log Symptom if detected & update Pre-Appointment AI Brief
+    // 4. Log Symptom and Auto-Update Pre-Appointment AI Brief
     if (detectedSymptom) {
       const newSymptom: SymptomLog = {
         id: `symp-${Date.now()}`,
@@ -225,19 +266,17 @@ export const useWellnessStore = create<WellnessState>((set, get) => ({
         reportedTimeFormatted: 'Just now via Voice Assistant',
       };
 
-      // Create caregiver alert
       const newAlert: CaregiverAlert = {
         id: `alert-${Date.now()}`,
         patientId: state.currentUser.id,
         type: 'symptom_warning',
         severity: severity === 'moderate' ? 'medium' : 'low',
         title: `Symptom Noted: ${detectedSymptom}`,
-        message: `Eleanor shared via voice: "${utterance}". Added to Pre-Appointment AI Brief.`,
+        message: `Eleanor shared via voice: "${utterance}". Linked to Dr. Adams' post-op knee records and Dr. Chen's upcoming cardiology brief.`,
         timestamp: new Date().toISOString(),
         read: false,
       };
 
-      // Automatically update the Pre-Appointment AI Brief for Dr. Robert Chen
       const updatedAppointments = state.appointments.map((app) => {
         if (app.id === 'app-1' && app.aiCompiledBrief) {
           const existingSymptoms = [...app.aiCompiledBrief.frequentSymptoms];
@@ -264,7 +303,7 @@ export const useWellnessStore = create<WellnessState>((set, get) => ({
             ...app,
             aiCompiledBrief: {
               ...app.aiCompiledBrief,
-              summary: `${app.aiCompiledBrief.summary} Ambient update: Patient just reported ${detectedSymptom.toLowerCase()} during morning dialogue.`,
+              summary: `${app.aiCompiledBrief.summary} Ambient voice update: Patient reported ${detectedSymptom.toLowerCase()} during morning dialogue.`,
               frequentSymptoms: existingSymptoms,
             },
           };
@@ -279,7 +318,7 @@ export const useWellnessStore = create<WellnessState>((set, get) => ({
       });
     }
 
-    // 5. Update Ambient Behavioral Presence Status
+    // 5. Update Ambient Presence Status
     set({
       behavioralStatus: {
         status: 'active_responsive',
@@ -291,16 +330,22 @@ export const useWellnessStore = create<WellnessState>((set, get) => ({
       },
     });
 
-    // 6. Generate empathetic natural language voice response
+    // 6. Generate empathetic natural language response with relational doctor & condition context
     let aiReply = '';
     if (hasMedIntakeIntent && detectedSymptom) {
-      aiReply = `I've recorded your morning medicines as taken, Eleanor. I'm sorry to hear that your ${detectedSymptom.toLowerCase().includes('knee') ? 'knee is hurting' : detectedSymptom.toLowerCase()} today. I have made a note for your daughter Sarah and added it to Dr. Robert Chen's appointment brief. Please rest comfortably and let me know if you need anything.`;
+      if (detectedSymptom.includes('Knee')) {
+        aiReply = `I've recorded your morning Lisinopril and Metformin as taken, Eleanor. I'm sorry to hear that your knee is acting up today. Since Dr. Adams performed your knee arthroscopy in August, I will make sure this discomfort is highlighted in Dr. Chen's consultation brief and let Sarah know. Please rest your leg and take it easy this morning.`;
+      } else if (detectedSymptom.includes('Dizziness')) {
+        aiReply = `I've noted that you took your morning blood pressure medication, Eleanor. Feeling lightheaded when standing up is important; I've logged this so Dr. Chen can review if your Lisinopril 10mg dosage needs adjusting. Please sit down for a few moments and drink some water.`;
+      } else {
+        aiReply = `I've recorded your medicines as taken, Eleanor. I'm sorry you are experiencing ${detectedSymptom.toLowerCase()}. I have added a note to your medical ledger and alerted Sarah so she is aware.`;
+      }
     } else if (hasMedIntakeIntent && !detectedSymptom) {
-      aiReply = `Wonderful! I have marked your morning Lisinopril, Metformin, and Vitamin D3 as taken. It's so good to hear you're feeling well today, Eleanor. Have a peaceful morning!`;
+      aiReply = `Wonderful! I have recorded your morning Lisinopril from Dr. Chen and your diabetes tablet from Dr. Santos as taken. It's so good to hear you're feeling great today, Eleanor. Have a peaceful and blessed day!`;
     } else if (!hasMedIntakeIntent && detectedSymptom) {
-      aiReply = `Thank you for sharing that with me, Eleanor. I have noted your ${detectedSymptom.toLowerCase()} in your health log so Dr. Chen can review it during your visit. Please take it easy and don't push yourself.`;
+      aiReply = `Thank you for telling me, Eleanor. I have added your ${detectedSymptom.toLowerCase()} to your lifelong medical record so your doctors can review the trend. Please sit down, rest, and let Sarah know if it gets uncomfortable.`;
     } else {
-      aiReply = `Thank you for checking in, Eleanor. I'm right here with you. Please remember to take your morning medicines when you are ready.`;
+      aiReply = `Thank you for checking in, Eleanor. I'm always right here with you. Please remember to take the morning medicines Dr. Chen and Dr. Santos prescribed when you're ready.`;
     }
 
     return {

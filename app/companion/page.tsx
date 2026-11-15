@@ -26,6 +26,7 @@ export default function VoiceCompanionPage() {
     voiceChatMessages, 
     addVoiceChatMessage, 
     processVoiceCheckIn,
+    getContextualVoicePrompt,
     symptoms 
   } = useWellnessStore();
 
@@ -172,9 +173,14 @@ export default function VoiceCompanionPage() {
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2 tracking-tight">
             How are you feeling today, Eleanor?
           </h2>
-          <p className="text-sm sm:text-base text-slate-600 mt-1 font-medium">
-            Just speak naturally. Tell me when you take your medicines or if you have any aches or pain.
-          </p>
+          <div className="mt-2 bg-emerald-50/80 border border-emerald-200/90 p-3.5 rounded-2xl">
+            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 block mb-0.5">
+              Context-Aware Ambient Voice Prompt:
+            </span>
+            <p className="text-sm sm:text-base text-emerald-950 font-medium leading-relaxed">
+              &quot;{getContextualVoicePrompt()}&quot;
+            </p>
+          </div>
         </div>
 
         {/* Voice Audio Read-Aloud Toggle */}

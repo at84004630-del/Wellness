@@ -15,6 +15,74 @@ export interface User {
   };
 }
 
+// -------------------------------------------------------------
+// RELATIONAL EHR SCHEMA (Lifelong Electronic Health Record)
+// -------------------------------------------------------------
+
+export interface Doctor {
+  id: string;
+  name: string;
+  specialty: string;
+  clinic: string;
+  phone: string;
+  email: string;
+}
+
+export type ConditionCategory = 'cardiovascular' | 'orthopedic' | 'metabolic' | 'respiratory' | 'geriatric';
+export type ConditionStatus = 'active' | 'chronic' | 'resolved' | 'post-op';
+
+export interface Condition {
+  id: string;
+  name: string; // e.g. "Right Knee Arthroscopy & Osteoarthritis", "Essential Hypertension"
+  category: ConditionCategory;
+  dateDiagnosed: string;
+  status: ConditionStatus;
+  icdCode?: string;
+  notes?: string;
+}
+
+export type PrescriptionStatus = 'active' | 'completed' | 'discontinued';
+
+export interface Prescription {
+  id: string;
+  doctorId: string;
+  conditionId: string;
+  patientId: string;
+  medicationName: string;
+  dosage: string;
+  dateIssued: string;
+  durationDays: number | 'ongoing';
+  status: PrescriptionStatus;
+  notes: string;
+}
+
+export interface MedicalHistoryEvent {
+  id: string;
+  patientId: string;
+  date: string;
+  title: string;
+  type: 'prescription_course' | 'surgery_procedure' | 'diagnosis' | 'clinical_visit';
+  doctorId: string;
+  conditionId: string;
+  medicationId?: string;
+  description: string;
+  duration: string;
+  outcome: string;
+  status: 'completed' | 'active' | 'resolved';
+}
+
+export interface AiPatientBrief {
+  patientSummary: string;
+  activeConditionsSummary: string;
+  recentMilestones: string[];
+  keyCaregiverTakeaway: string;
+  lastSynthesized: string;
+}
+
+// -------------------------------------------------------------
+// MEDICATIONS & SCHEDULES (Linked to EHR)
+// -------------------------------------------------------------
+
 export type PillShape = 'round' | 'oval' | 'capsule' | 'oblong' | 'square' | 'triangle';
 
 export interface VisualPillDescription {
@@ -28,6 +96,9 @@ export interface VisualPillDescription {
 
 export interface Medication {
   id: string;
+  prescriptionId: string; // Relational foreign key
+  conditionId: string;    // Relational foreign key
+  doctorId: string;       // Relational foreign key
   patientId: string;
   name: string;
   genericName: string;
@@ -77,6 +148,10 @@ export interface MedicationLog {
   };
 }
 
+// -------------------------------------------------------------
+// SYMPTOMS, BEHAVIOR & APPOINTMENTS
+// -------------------------------------------------------------
+
 export type SymptomCategory = 'pain' | 'mobility' | 'dizziness' | 'fatigue' | 'digestive' | 'mood' | 'general';
 export type SymptomSeverity = 'mild' | 'moderate' | 'severe';
 
@@ -84,17 +159,17 @@ export interface SymptomLog {
   id: string;
   patientId: string;
   timestamp: string;
-  symptom: string; // e.g., "Knee joint stiffness & discomfort"
+  symptom: string;
   category: SymptomCategory;
   severity: SymptomSeverity;
-  rawUtterance: string; // "I just took it, but my knee hurts today"
+  rawUtterance: string;
   aiExtractedIntent: string;
   reportedTimeFormatted: string;
 }
 
 export interface AiCompiledBrief {
   generatedAt: string;
-  timeWindow: string; // e.g., "Past 14 Days"
+  timeWindow: string;
   summary: string;
   frequentSymptoms: Array<{
     name: string;
@@ -149,4 +224,5 @@ export interface VoiceChatMessage {
   timestamp: string;
   extractedSymptom?: string;
   medicationConfirmed?: string;
+  contextualPrescriptionNote?: string;
 }

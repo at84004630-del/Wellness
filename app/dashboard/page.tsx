@@ -24,8 +24,10 @@ import {
   Volume2, 
   Printer, 
   Share2,
-  AlertCircle
+  AlertCircle,
+  BookOpen
 } from 'lucide-react';
+import MedicalRecordBook from '@/components/MedicalRecordBook';
 
 export default function CaregiverDashboardPage() {
   const { 
@@ -41,7 +43,7 @@ export default function CaregiverDashboardPage() {
     currentUser 
   } = useWellnessStore();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'brief' | 'symptoms' | 'medications' | 'appointments'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'records' | 'brief' | 'symptoms' | 'medications' | 'appointments'>('overview');
   const [simulatedEmailSent, setSimulatedEmailSent] = useState<string | null>(null);
 
   const takenCount = schedules.filter(s => s.status === 'taken').length;
@@ -126,6 +128,15 @@ export default function CaregiverDashboardPage() {
             }`}
           >
             Overview & Telemetry
+          </button>
+          <button
+            onClick={() => setActiveTab('records')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === 'records' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+            Medical Record Book (EHR)
           </button>
           <button
             onClick={() => setActiveTab('brief')}
@@ -480,6 +491,11 @@ export default function CaregiverDashboardPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Tab: Dedicated Lifelong Medical Record Book (EHR) */}
+      {activeTab === 'records' && (
+        <MedicalRecordBook />
       )}
 
       {/* Tab: Dedicated Pre-Appointment AI Clinical Brief */}
