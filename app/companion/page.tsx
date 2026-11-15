@@ -5,85 +5,49 @@ import { useWellnessStore } from '@/lib/store';
 import { 
   CheckCircle2, 
   Camera, 
-  Sparkles, 
-  AlertOctagon, 
   Clock, 
   Pill, 
-  X, 
-  Volume2,
-  ThumbsUp,
-  ShieldAlert
+  HeartHandshake,
+  AlertCircle
 } from 'lucide-react';
+import { DoseSchedule, Medication } from '@/types';
+import PillScannerModal from '@/components/PillScannerModal';
 
 export default function CompanionPage() {
   const { 
     medications, 
     schedules, 
     recordDoseTaken, 
-    activeScanningScheduleId, 
-    setActiveScanningScheduleId 
   } = useWellnessStore();
 
-  const [isScanning, setIsScanning] = useState(false);
-  const [scanState, setScanState] = useState<'idle' | 'analyzing' | 'matched' | 'mismatch'>('idle');
-  const [activeSchedule, setActiveSchedule] = useState<any>(null);
+  const [activeSchedule, setActiveSchedule] = useState<DoseSchedule | null>(null);
 
-  // Find next pending or active dose
+  // Find pending and taken doses
   const pendingDoses = schedules.filter(s => s.status === 'pending');
   const takenDoses = schedules.filter(s => s.status === 'taken');
 
-  const handleStartScan = (schedule: any) => {
+  const handleStartScan = (schedule: DoseSchedule) => {
     setActiveSchedule(schedule);
-    setIsScanning(true);
-    setScanState('idle');
   };
 
-  const handleSimulateAnalysis = (verdict: 'safe' | 'mismatch') => {
-    setScanState('analyzing');
-    const med = medications.find(m => m.id === activeSchedule.medicationId);
-
-    setTimeout(() => {
-      if (verdict === 'safe') {
-        setScanState('matched');
-        recordDoseTaken(activeSchedule.id, {
-          method: 'ai_vision',
-          verdict: 'VERIFIED_SAFE',
-          confidence: 0.98,
-          details: {
-            detectedColor: med?.visual.color || 'Pink',
-            detectedShape: med?.visual.shape || 'round',
-            detectedImprint: med?.visual.imprint || 'LUPIN 10',
-            colorMatch: true,
-            shapeMatch: true,
-            imprintMatch: true,
-            notes: `Visual AI confirmed ${med?.name} ${med?.dosage} characteristics with 98% accuracy.`,
-          },
-        });
-      } else {
-        setScanState('mismatch');
-        recordDoseTaken(activeSchedule.id, {
-          method: 'ai_vision',
-          verdict: 'WARNING_MISMATCH',
-          confidence: 0.94,
-          details: {
-            detectedColor: 'Blue / Unknown',
-            detectedShape: 'capsule',
-            detectedImprint: 'UNIDENTIFIED',
-            colorMatch: false,
-            shapeMatch: false,
-            imprintMatch: false,
-            notes: `MISMATCH: Expected ${med?.visual.color} ${med?.visual.shape}, but camera detected blue capsule. Ingestion prevented.`,
-          },
-        });
-      }
-    }, 1500);
-  };
-
-  const handleCloseModal = () => {
-    setIsScanning(false);
-    setScanState('idle');
+  const handleCloseScanner = () => {
     setActiveSchedule(null);
   };
+
+  const handleVerificationComplete = (result: any) => {
+    if (activeSchedule) {
+      recordDoseTaken(activeSchedule.id, {
+        method: 'ai_vision',
+        verdict: result.verdict,
+        confidence: result.confidence,
+        details: result.details,
+      });
+    }
+  };
+
+  const activeMedication = activeSchedule 
+    ? medications.find(m => m.id === activeSchedule.medicationId) 
+    : null;
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto w-full">
@@ -91,17 +55,17 @@ export default function CompanionPage() {
       <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <span className="text-xs sm:text-sm font-bold tracking-widest text-emerald-700 uppercase bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-              Today&apos;s Medication Routine
+            <span className="text-xs sm:text-sm font-bold tracking-widest text-emerald-800 uppercase bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+              Today&apos;s Medication Schedule
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-2 tracking-tight">
               {pendingDoses.length > 0
-                ? `You have ${pendingDoses.length} dose${pendingDoses.length > 1 ? 's' : ''} to take today`
+                ? `You have ${pendingDoses.length} medicine${pendingDoses.length > 1 ? 's' : ''} to take today`
                 : 'All scheduled medicines taken for today!'}
             </h2>
             <p className="text-base sm:text-lg text-slate-600 mt-2 font-medium">
               {pendingDoses.length > 0 
-                ? 'Please verify each pill with the camera before taking it.'
+                ? 'Please verify each pill with the live camera before taking it.'
                 : 'Great job, Eleanor! Rest well and stay hydrated.'}
             </p>
           </div>
@@ -172,7 +136,7 @@ export default function CompanionPage() {
                       </p>
 
                       <p className="text-xs text-slate-500 mt-2 flex items-center gap-2">
-                        <span className="font-semibold text-slate-700">Pill Appearance:</span>
+                        <span className="font-semibold text-slate-700">Expected Appearance:</span>
                         <span>{med?.visual.color}, {med?.visual.shape} with imprint &quot;{med?.visual.imprint}&quot;</span>
                       </p>
                     </div>
@@ -202,147 +166,15 @@ export default function CompanionPage() {
         </div>
       </div>
 
-      {/* AI Computer-Vision Scanner Modal */}
-      {isScanning && activeSchedule && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-fade-in">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 border-2 border-slate-200 shadow-2xl relative space-y-6">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
-                  <Sparkles className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-extrabold text-slate-900">AI Visual Pill Verification</h3>
-                  <p className="text-xs text-slate-500 font-medium">
-                    Hold the pill up to your camera to verify safety
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={handleCloseModal}
-                className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Target Medication Reference Banner */}
-            {(() => {
-              const med = medications.find(m => m.id === activeSchedule.medicationId);
-              return (
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center justify-between">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase text-slate-500">Prescription Expected</span>
-                    <p className="text-lg font-bold text-slate-900">{med?.name} ({med?.dosage})</p>
-                    <p className="text-xs text-slate-600">
-                      Visual Spec: {med?.visual.color} • {med?.visual.shape} • Imprint: &quot;{med?.visual.imprint}&quot;
-                    </p>
-                  </div>
-                  <div 
-                    className="w-12 h-12 rounded-xl flex items-center justify-center border shadow-xs"
-                    style={{ backgroundColor: med?.visual.colorHex }}
-                  >
-                    <Pill className="w-6 h-6 text-slate-800" />
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Simulated Live Camera Viewport */}
-            <div className="relative aspect-video bg-slate-900 rounded-2xl overflow-hidden flex flex-col items-center justify-center text-white p-6 border-4 border-slate-800">
-              {/* Camera reticle grid */}
-              <div className="absolute inset-8 border-2 border-dashed border-emerald-400/60 rounded-2xl flex items-center justify-center pointer-events-none">
-                <span className="text-xs text-emerald-300 font-mono bg-slate-900/80 px-3 py-1 rounded-full">
-                  Position pill inside crosshairs
-                </span>
-              </div>
-
-              {scanState === 'idle' && (
-                <div className="text-center space-y-3 z-10">
-                  <Camera className="w-14 h-14 text-emerald-400 mx-auto animate-pulse" />
-                  <p className="text-base font-semibold text-slate-200">
-                    Camera Active: Hold pill steady in good lighting
-                  </p>
-                </div>
-              )}
-
-              {scanState === 'analyzing' && (
-                <div className="text-center space-y-3 z-10">
-                  <div className="w-12 h-12 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin mx-auto" />
-                  <p className="text-lg font-bold text-emerald-300">
-                    AI Analyzing Pill Geometry & Imprint...
-                  </p>
-                  <p className="text-xs text-slate-300 font-mono">
-                    Matching against FDA pill identifier database
-                  </p>
-                </div>
-              )}
-
-              {scanState === 'matched' && (
-                <div className="text-center space-y-2 z-10 animate-scale-up">
-                  <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto text-white shadow-lg">
-                    <CheckCircle2 className="w-10 h-10" />
-                  </div>
-                  <p className="text-2xl font-black text-emerald-300">
-                    Pill Verified! Safe to Take
-                  </p>
-                  <p className="text-xs text-slate-200">
-                    Shape: 100% Match • Color: 98% Match • Imprint: Verified
-                  </p>
-                </div>
-              )}
-
-              {scanState === 'mismatch' && (
-                <div className="text-center space-y-2 z-10 animate-scale-up">
-                  <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto text-white shadow-lg">
-                    <ShieldAlert className="w-10 h-10" />
-                  </div>
-                  <p className="text-2xl font-black text-red-400">
-                    STOP! Pill Mismatch Detected
-                  </p>
-                  <p className="text-xs text-slate-200">
-                    Detected wrong pill! Alert sent to Sarah Vance.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons for Demo & Real Evaluation */}
-            <div className="space-y-3">
-              {scanState === 'idle' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    onClick={() => handleSimulateAnalysis('safe')}
-                    className="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base py-4 rounded-xl shadow transition"
-                  >
-                    <Sparkles className="w-5 h-5" />
-                    <span>Verify Correct Pill (AI Scan)</span>
-                  </button>
-                  <button
-                    onClick={() => handleSimulateAnalysis('mismatch')}
-                    className="w-full inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-sm py-4 rounded-xl transition"
-                    title="Test safety feature: simulates holding wrong pill"
-                  >
-                    <AlertOctagon className="w-5 h-5 text-amber-700" />
-                    <span>Simulate Wrong Pill (Safety Alert)</span>
-                  </button>
-                </div>
-              )}
-
-              {(scanState === 'matched' || scanState === 'mismatch') && (
-                <button
-                  onClick={handleCloseModal}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-lg py-4 rounded-xl shadow transition"
-                >
-                  {scanState === 'matched' ? 'Done - Return to Schedule' : 'Close and Contact Caregiver'}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+      {/* Live AI Webcam Pill Scanner Modal */}
+      {activeSchedule && activeMedication && (
+        <PillScannerModal
+          schedule={activeSchedule}
+          medication={activeMedication}
+          onClose={handleCloseScanner}
+          onVerificationComplete={handleVerificationComplete}
+        />
       )}
     </div>
   );
 }
-
