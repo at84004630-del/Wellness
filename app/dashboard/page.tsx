@@ -25,9 +25,13 @@ import {
   Printer, 
   Share2,
   AlertCircle,
-  BookOpen
+  BookOpen,
+  Plus
 } from 'lucide-react';
 import MedicalRecordBook from '@/components/MedicalRecordBook';
+import AddMedicalRecordModal from '@/components/AddMedicalRecordModal';
+import AddMedicationForm from '@/components/AddMedicationForm';
+import DemoControls from '@/components/DemoControls';
 
 export default function CaregiverDashboardPage() {
   const { 
@@ -43,8 +47,9 @@ export default function CaregiverDashboardPage() {
     currentUser 
   } = useWellnessStore();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'records' | 'brief' | 'symptoms' | 'medications' | 'appointments'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'records' | 'add-med' | 'brief' | 'symptoms' | 'medications' | 'appointments'>('overview');
   const [simulatedEmailSent, setSimulatedEmailSent] = useState<string | null>(null);
+  const [isAddRecordOpen, setIsAddRecordOpen] = useState(false);
 
   const takenCount = schedules.filter(s => s.status === 'taken').length;
   const pendingCount = schedules.filter(s => s.status === 'pending').length;
@@ -108,6 +113,9 @@ export default function CaregiverDashboardPage() {
         </div>
       </div>
 
+      {/* 2. Hackathon Demo Controls & Presentation Sandbox */}
+      <DemoControls />
+
       {/* Top Clinical Navigation Bar & Tab Switcher */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
         <div>
@@ -119,57 +127,76 @@ export default function CaregiverDashboardPage() {
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-xl border border-slate-200 overflow-x-auto max-w-full">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Tab Switcher */}
+          <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-xl border border-slate-200 overflow-x-auto max-w-full">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
+                activeTab === 'overview' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Overview & Telemetry
+            </button>
+            <button
+              onClick={() => setActiveTab('records')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === 'records' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+              Medical Record Book (EHR)
+            </button>
+            <button
+              onClick={() => setActiveTab('add-med')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === 'add-med' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Pill className="w-3.5 h-3.5 text-emerald-200" />
+              <span>+ Add Medication Form</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('brief')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === 'brief' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Sparkles className="w-3 h-3 text-emerald-200" />
+              Pre-Appointment AI Brief
+            </button>
+            <button
+              onClick={() => setActiveTab('symptoms')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
+                activeTab === 'symptoms' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Symptom History ({symptoms.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('medications')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
+                activeTab === 'medications' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Prescriptions ({medications.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('appointments')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
+                activeTab === 'appointments' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Appointments ({appointments.length})
+            </button>
+          </div>
+
           <button
-            onClick={() => setActiveTab('overview')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-              activeTab === 'overview' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
+            onClick={() => setActiveTab('add-med')}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm shadow-emerald-700/20 transition whitespace-nowrap"
           >
-            Overview & Telemetry
-          </button>
-          <button
-            onClick={() => setActiveTab('records')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === 'records' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
-            Medical Record Book (EHR)
-          </button>
-          <button
-            onClick={() => setActiveTab('brief')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === 'brief' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Sparkles className="w-3 h-3 text-emerald-200" />
-            Pre-Appointment AI Brief
-          </button>
-          <button
-            onClick={() => setActiveTab('symptoms')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-              activeTab === 'symptoms' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Symptom History ({symptoms.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('medications')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-              activeTab === 'medications' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Prescriptions ({medications.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('appointments')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-              activeTab === 'appointments' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Appointments ({appointments.length})
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>+ Add Record</span>
           </button>
         </div>
       </div>
@@ -493,6 +520,11 @@ export default function CaregiverDashboardPage() {
         </div>
       )}
 
+      {/* Tab: Add Medication Form with AI Conflict Checker */}
+      {activeTab === 'add-med' && (
+        <AddMedicationForm onSuccess={() => setActiveTab('medications')} />
+      )}
+
       {/* Tab: Dedicated Lifelong Medical Record Book (EHR) */}
       {activeTab === 'records' && (
         <MedicalRecordBook />
@@ -700,6 +732,11 @@ export default function CaregiverDashboardPage() {
           </div>
         </div>
       )}
+      {/* Add Lifelong Medical Record Modal */}
+      <AddMedicalRecordModal
+        isOpen={isAddRecordOpen}
+        onClose={() => setIsAddRecordOpen(false)}
+      />
     </div>
   );
 }

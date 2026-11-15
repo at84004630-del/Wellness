@@ -16,7 +16,8 @@ import {
   Send,
   AlertCircle,
   HelpCircle,
-  Stethoscope
+  Stethoscope,
+  Zap
 } from 'lucide-react';
 
 export default function VoiceCompanionPage() {
@@ -27,6 +28,7 @@ export default function VoiceCompanionPage() {
     addVoiceChatMessage, 
     processVoiceCheckIn,
     getContextualVoicePrompt,
+    triggerNextReminderNow,
     symptoms 
   } = useWellnessStore();
 
@@ -151,10 +153,14 @@ export default function VoiceCompanionPage() {
     handleUserUtterance(presetText);
   };
 
-  // Find morning and scheduled doses
-  const morningDoses = schedules.filter(s => s.label === 'Morning');
-  const allMorningTaken = morningDoses.every(s => s.status === 'taken');
+  const handleForceTriggerReminder = () => {
+    const { reminderText } = triggerNextReminderNow();
+    speakText(reminderText);
+  };
+
+  // Find all scheduled doses dynamically
   const pendingCount = schedules.filter(s => s.status === 'pending').length;
+  const allDosesTaken = schedules.length > 0 && pendingCount === 0;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto w-full pb-10">
@@ -258,7 +264,7 @@ export default function VoiceCompanionPage() {
               {aiState === 'listening' && 'Listening to you... Speak anytime'}
               {aiState === 'thinking' && 'AI is understanding your medicine & symptoms...'}
               {aiState === 'speaking' && 'Wellness Companion is replying...'}
-              {aiState === 'idle' && (allMorningTaken ? 'Morning medicines verified! Rest comfortably.' : 'Tap the microphone to speak with Wellness')}
+              {aiState === 'idle' && (allDosesTaken ? 'All medicines recorded! Rest comfortably.' : 'Tap the microphone to speak with Wellness')}
             </p>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
               Natural speech recognition with dual medicine & symptom understanding
@@ -377,7 +383,7 @@ export default function VoiceCompanionPage() {
         </form>
       </div>
 
-      {/* Passive Schedule Overview (No tiny buttons, high-contrast visibility) */}
+      {/* Passive Schedule Overview (Dynamic Reaction to Store Schedules) */}
       <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -385,44 +391,68 @@ export default function VoiceCompanionPage() {
               <Clock className="w-5 h-5 text-slate-700" />
               <span>Today&apos;s Medication Status</span>
             </h3>
-            <p className="text-xs text-slate-500">Updated automatically via ambient voice check-ins</p>
+            <p className="text-xs text-slate-500">Updated automatically via ambient voice check-ins & caregiver entry</p>
           </div>
           <span className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
-            {allMorningTaken ? 'Morning Doses Complete' : `${pendingCount} Remaining`}
+            {schedules.length === 0
+              ? 'No Schedules'
+              : allDosesTaken
+              ? 'All Doses Complete'
+              : `${pendingCount} Remaining`}
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {morningDoses.map((schedule) => {
-            const med = medications.find(m => m.id === schedule.medicationId);
-            const isTaken = schedule.status === 'taken';
+        {schedules.length === 0 ? (
+          <div className="p-8 text-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl space-y-2">
+            <Pill className="w-8 h-8 text-slate-400 mx-auto" />
+            <p className="font-extrabold text-slate-700 text-sm">No Active Medication Schedules</p>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">
+              The platform is currently in a fresh demo state. Prescribe a new medication in the Caregiver Command Center, or restore preloaded case.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {schedules.map((schedule) => {
+              const med = medications.find(m => m.id === schedule.medicationId);
+              const isTaken = schedule.status === 'taken';
 
-            return (
-              <div 
-                key={schedule.id}
-                className={`p-4 rounded-2xl border-2 transition ${
-                  isTaken 
-                    ? 'bg-emerald-50/60 border-emerald-300' 
-                    : 'bg-slate-50 border-slate-200'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] font-bold text-slate-500 uppercase">{schedule.timeSlot}</span>
-                  {isTaken ? (
-                    <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Taken
-                    </span>
-                  ) : (
-                    <span className="text-xs font-semibold text-amber-700">Scheduled</span>
-                  )}
+              return (
+                <div 
+                  key={schedule.id}
+                  className={`p-4 rounded-2xl border-2 transition ${
+                    isTaken 
+                      ? 'bg-emerald-50/60 border-emerald-300' 
+                      : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase">{schedule.timeSlot} • {schedule.label}</span>
+                    {isTaken ? (
+                      <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Taken
+                      </span>
+                    ) : (
+                      <span className="text-xs font-semibold text-amber-700">Scheduled</span>
+                    )}
+                  </div>
+                  <h4 className="text-base font-extrabold text-slate-900">{med?.name || 'Medication'}</h4>
+                  <p className="text-xs text-slate-600 font-medium">{med?.dosage} • {med?.purpose}</p>
                 </div>
-                <h4 className="text-base font-extrabold text-slate-900">{med?.name}</h4>
-                <p className="text-xs text-slate-600 font-medium">{med?.dosage} • {med?.purpose}</p>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      {/* Developer Demo Fast-Forward Button (For 3-Minute Hackathon Pitch) */}
+      <button
+        onClick={handleForceTriggerReminder}
+        className="fixed bottom-5 right-5 z-40 bg-slate-900/95 hover:bg-black text-white px-4 py-2.5 rounded-2xl shadow-2xl border-2 border-emerald-500/80 flex items-center gap-2.5 text-xs font-black transition backdrop-blur-xs group hover:scale-105 active:scale-95"
+        title="Demo Fast-Forward: Force Voice AI to issue the next medication reminder immediately"
+      >
+        <Zap className="w-4 h-4 text-amber-400 group-hover:scale-125 transition-transform" />
+        <span>⚡ Trigger Next Reminder Now (Pitch Fast-Forward)</span>
+      </button>
     </div>
   );
 }

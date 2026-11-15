@@ -209,12 +209,15 @@ export interface BehavioralStatus {
 export interface CaregiverAlert {
   id: string;
   patientId: string;
-  type: 'missed_dose' | 'mismatch_detected' | 'refill_needed' | 'appointment' | 'symptom_warning' | 'unresponsive_checkin';
+  type: 'missed_dose' | 'mismatch_detected' | 'refill_needed' | 'appointment' | 'symptom_warning' | 'unresponsive_checkin' | 'ehr_record_added' | 'general';
   severity: 'low' | 'medium' | 'high' | 'critical';
   title: string;
   message: string;
   timestamp: string;
   read: boolean;
+  channel?: 'email' | 'sms' | 'push' | 'omnichannel';
+  category?: 'adherence' | 'clinical' | 'ehr' | 'telemetry';
+  actionUrl?: string;
 }
 
 export interface VoiceChatMessage {

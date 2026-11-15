@@ -21,8 +21,12 @@ import {
   TrendingUp,
   AlertCircle,
   Scissors,
-  Check
+  Check,
+  Plus,
+  BookOpen,
+  Trash2
 } from 'lucide-react';
+import AddMedicalRecordModal from './AddMedicalRecordModal';
 
 export default function MedicalRecordBook() {
   const { 
@@ -33,11 +37,21 @@ export default function MedicalRecordBook() {
     aiPatientBrief, 
     medications,
     getDoctor,
-    getCondition 
+    getCondition,
+    deleteDoctor,
+    deleteCondition,
+    deleteMedication 
   } = useWellnessStore();
 
   const [selectedConditionFilter, setSelectedConditionFilter] = useState<string>('all');
   const [selectedDoctorFilter, setSelectedDoctorFilter] = useState<string>('all');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addModalInitialTab, setAddModalInitialTab] = useState<'doctor' | 'condition' | 'medication'>('medication');
+
+  const handleOpenAddModal = (tab: 'doctor' | 'condition' | 'medication' = 'medication') => {
+    setAddModalInitialTab(tab);
+    setIsAddModalOpen(true);
+  };
 
   // Filtered history events
   const filteredEvents = medicalHistory.filter((event) => {
@@ -52,6 +66,52 @@ export default function MedicalRecordBook() {
 
   return (
     <div className="space-y-8">
+      {/* ------------------------------------------------------------- */}
+      {/* 0. EHR HEADER & QUICK ACTION REGISTRATION BAR */}
+      {/* ------------------------------------------------------------- */}
+      <div className="bg-white p-5 sm:p-6 rounded-3xl border-2 border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+              <BookOpen className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                Lifelong Electronic Health Record (EHR)
+              </h2>
+              <p className="text-xs text-slate-500 font-medium">
+                Authorized patient ledger: {doctors.length} Doctors • {conditions.length} Conditions • {prescriptions.length} Prescriptions
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => handleOpenAddModal('doctor')}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition"
+          >
+            <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />
+            <span>+ Consult Doctor</span>
+          </button>
+
+          <button
+            onClick={() => handleOpenAddModal('condition')}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition"
+          >
+            <Activity className="w-3.5 h-3.5 text-emerald-600" />
+            <span>+ Add Disease / Condition</span>
+          </button>
+
+          <button
+            onClick={() => handleOpenAddModal('medication')}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-700/20 transition"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>+ Prescribe New Medicine</span>
+          </button>
+        </div>
+      </div>
       {/* ------------------------------------------------------------- */}
       {/* 1. AI MEDICAL SUMMARIZER (Executive Longitudinal Patient Brief) */}
       {/* ------------------------------------------------------------- */}
@@ -142,30 +202,58 @@ export default function MedicalRecordBook() {
           <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
               <Stethoscope className="w-4 h-4 text-emerald-600" />
-              <span>Attending Medical Team ({doctors.length})</span>
+              <span>Attending Care Team ({doctors.length})</span>
             </h3>
-            <span className="text-xs font-bold text-slate-500">Authorized</span>
+            <button
+              onClick={() => handleOpenAddModal('doctor')}
+              className="text-xs font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1 transition"
+            >
+              <Plus className="w-3 h-3" />
+              <span>+ Add Doctor</span>
+            </button>
           </div>
 
           <div className="space-y-3">
-            {doctors.map((doc) => (
-              <div key={doc.id} className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-1.5 text-xs">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-extrabold text-slate-900 text-sm">{doc.name}</h4>
-                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    Primary Specialist
-                  </span>
-                </div>
-                <p className="text-slate-600 font-semibold">{doc.specialty}</p>
-                <p className="text-slate-500 text-[11px] flex items-center gap-1">
-                  <Building className="w-3 h-3 text-slate-400" /> {doc.clinic}
-                </p>
-                <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500">
-                  <span>{doc.phone}</span>
-                  <a href={`mailto:${doc.email}`} className="text-emerald-700 hover:underline">Contact</a>
-                </div>
+            {doctors.length === 0 ? (
+              <div className="p-6 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl space-y-2">
+                <Stethoscope className="w-6 h-6 text-slate-400 mx-auto" />
+                <p className="font-bold text-slate-700 text-xs">No Doctors Registered</p>
+                <button
+                  onClick={() => handleOpenAddModal('doctor')}
+                  className="text-xs font-bold text-emerald-700 hover:underline block mx-auto"
+                >
+                  + Add First Attending Doctor
+                </button>
               </div>
-            ))}
+            ) : (
+              doctors.map((doc) => (
+                <div key={doc.id} className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-1.5 text-xs group relative">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-extrabold text-slate-900 text-sm">{doc.name}</h4>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        Specialist
+                      </span>
+                      <button
+                        onClick={() => deleteDoctor(doc.id)}
+                        className="text-slate-400 hover:text-rose-600 opacity-60 group-hover:opacity-100 p-0.5"
+                        title="Remove doctor"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-slate-600 font-semibold">{doc.specialty}</p>
+                  <p className="text-slate-500 text-[11px] flex items-center gap-1">
+                    <Building className="w-3 h-3 text-slate-400" /> {doc.clinic}
+                  </p>
+                  <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500">
+                    <span>{doc.phone}</span>
+                    <a href={`mailto:${doc.email}`} className="text-emerald-700 hover:underline">Contact</a>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -179,44 +267,74 @@ export default function MedicalRecordBook() {
               </h3>
               <p className="text-xs text-slate-500">Linking injuries, diseases, and current medications</p>
             </div>
-            <span className="text-xs font-bold text-slate-500">{conditions.length} Total</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleOpenAddModal('condition')}
+                className="text-xs font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1 transition"
+              >
+                <Plus className="w-3 h-3" />
+                <span>+ Add Condition</span>
+              </button>
+              <span className="text-xs font-bold text-slate-500">{conditions.length} Total</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {conditions.map((cond) => {
-              const linkedRxs = prescriptions.filter(p => p.conditionId === cond.id);
-              const isResolved = cond.status === 'resolved';
-
-              return (
-                <div 
-                  key={cond.id} 
-                  className={`p-4 rounded-2xl border text-xs space-y-2.5 transition ${
-                    isResolved 
-                      ? 'bg-slate-50/70 border-slate-200 opacity-80' 
-                      : 'bg-white border-slate-200 hover:border-slate-300'
-                  }`}
+            {conditions.length === 0 ? (
+              <div className="col-span-2 p-6 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl space-y-2">
+                <Activity className="w-6 h-6 text-slate-400 mx-auto" />
+                <p className="font-bold text-slate-700 text-xs">No Diagnosed Conditions Recorded</p>
+                <button
+                  onClick={() => handleOpenAddModal('condition')}
+                  className="text-xs font-bold text-emerald-700 hover:underline block mx-auto"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="text-[10px] font-mono text-slate-400 font-bold">
-                        ICD: {cond.icdCode || 'N/A'} • {cond.category}
-                      </span>
-                      <h4 className="font-extrabold text-slate-900 text-sm leading-tight mt-0.5">
-                        {cond.name}
-                      </h4>
+                  + Add First Medical Condition
+                </button>
+              </div>
+            ) : (
+              conditions.map((cond) => {
+                const linkedRxs = prescriptions.filter(p => p.conditionId === cond.id);
+                const isResolved = cond.status === 'resolved';
+
+                return (
+                  <div 
+                    key={cond.id} 
+                    className={`p-4 rounded-2xl border text-xs space-y-2.5 transition group relative ${
+                      isResolved 
+                        ? 'bg-slate-50/70 border-slate-200 opacity-80' 
+                        : 'bg-white border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] font-mono text-slate-400 font-bold">
+                          ICD: {cond.icdCode || 'N/A'} • {cond.category}
+                        </span>
+                        <h4 className="font-extrabold text-slate-900 text-sm leading-tight mt-0.5">
+                          {cond.name}
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                          cond.status === 'active'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                            : cond.status === 'post-op'
+                            ? 'bg-blue-50 text-blue-800 border-blue-300'
+                            : cond.status === 'chronic'
+                            ? 'bg-purple-50 text-purple-800 border-purple-300'
+                            : 'bg-slate-100 text-slate-600 border-slate-300'
+                        }`}>
+                          {cond.status}
+                        </span>
+                        <button
+                          onClick={() => deleteCondition(cond.id)}
+                          className="text-slate-400 hover:text-rose-600 opacity-60 group-hover:opacity-100 p-0.5"
+                          title="Remove condition"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                      cond.status === 'active'
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                        : cond.status === 'post-op'
-                        ? 'bg-blue-50 text-blue-800 border-blue-300'
-                        : cond.status === 'chronic'
-                        ? 'bg-purple-50 text-purple-800 border-purple-300'
-                        : 'bg-slate-100 text-slate-600 border-slate-300'
-                    }`}>
-                      {cond.status}
-                    </span>
-                  </div>
 
                   <p className="text-slate-600 line-clamp-2 leading-relaxed">
                     {cond.notes}
@@ -250,7 +368,8 @@ export default function MedicalRecordBook() {
                   </div>
                 </div>
               );
-            })}
+            })
+          )}
           </div>
         </div>
       </div>
@@ -306,85 +425,108 @@ export default function MedicalRecordBook() {
         </div>
 
         {/* Timeline Spine */}
-        <div className="relative pl-6 sm:pl-8 border-l-2 border-slate-200 space-y-8 my-4">
-          {filteredEvents.map((event) => {
-            const doc = getDoctor(event.doctorId);
-            const cond = getCondition(event.conditionId);
-            const isSurgery = event.type === 'surgery_procedure';
-            const isActive = event.status === 'active';
+        {filteredEvents.length === 0 ? (
+          <div className="p-10 text-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl space-y-2 my-4">
+            <Clock className="w-8 h-8 text-slate-400 mx-auto" />
+            <p className="font-extrabold text-slate-700 text-sm">No Historical Ledger Events Found</p>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">
+              The ledger is currently empty. Prescribe a medication, record a diagnosis, or restore the Eleanor Vance case to see the timeline.
+            </p>
+            <button
+              onClick={() => handleOpenAddModal('medication')}
+              className="text-xs font-bold text-emerald-700 hover:underline mt-2 inline-block"
+            >
+              + Prescribe First Medicine
+            </button>
+          </div>
+        ) : (
+          <div className="relative pl-6 sm:pl-8 border-l-2 border-slate-200 space-y-8 my-4">
+            {filteredEvents.map((event) => {
+              const doc = getDoctor(event.doctorId);
+              const cond = getCondition(event.conditionId);
+              const isSurgery = event.type === 'surgery_procedure';
+              const isActive = event.status === 'active';
 
-            return (
-              <div key={event.id} className="relative group">
-                {/* Timeline node icon */}
-                <div className={`absolute -left-[35px] sm:-left-[43px] top-1.5 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
-                  isActive
-                    ? 'bg-emerald-600 text-white border-emerald-400 ring-4 ring-emerald-100'
-                    : isSurgery
-                    ? 'bg-blue-600 text-white border-blue-400 ring-4 ring-blue-100'
-                    : 'bg-slate-100 text-slate-700 border-slate-300'
-                }`}>
-                  {isSurgery ? (
-                    <Scissors className="w-4 h-4" />
-                  ) : isActive ? (
-                    <Activity className="w-4 h-4" />
-                  ) : (
-                    <Pill className="w-4 h-4" />
-                  )}
-                </div>
+              return (
+                <div key={event.id} className="relative group">
+                  {/* Timeline node icon */}
+                  <div className={`absolute -left-[35px] sm:-left-[43px] top-1.5 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                    isActive
+                      ? 'bg-emerald-600 text-white border-emerald-400 ring-4 ring-emerald-100'
+                      : isSurgery
+                      ? 'bg-blue-600 text-white border-blue-400 ring-4 ring-blue-100'
+                      : 'bg-slate-100 text-slate-700 border-slate-300'
+                  }`}>
+                    {isSurgery ? (
+                      <Scissors className="w-4 h-4" />
+                    ) : isActive ? (
+                      <Activity className="w-4 h-4" />
+                    ) : (
+                      <Pill className="w-4 h-4" />
+                    )}
+                  </div>
 
-                {/* Event Card */}
-                <div className="bg-slate-50/70 group-hover:bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 group-hover:border-slate-300 group-hover:shadow-sm transition-all space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-black uppercase tracking-wider text-slate-500">
-                        {event.date}
-                      </span>
-                      <span className="text-slate-300">•</span>
-                      <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                        {cond?.name}
+                  {/* Event Card */}
+                  <div className="bg-slate-50/70 group-hover:bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 group-hover:border-slate-300 group-hover:shadow-sm transition-all space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+                          {event.date}
+                        </span>
+                        <span className="text-slate-300">•</span>
+                        <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                          {cond?.name || 'Clinical Regimen'}
+                        </span>
+                      </div>
+
+                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full self-start sm:self-auto ${
+                        event.status === 'active'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : event.status === 'completed'
+                          ? 'bg-slate-200 text-slate-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {event.status === 'active' ? 'Active Regimen' : 'Course Completed'}
                       </span>
                     </div>
 
-                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full self-start sm:self-auto ${
-                      event.status === 'active'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : event.status === 'completed'
-                        ? 'bg-slate-200 text-slate-800'
-                        : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {event.status === 'active' ? 'Active Regimen' : 'Course Completed'}
-                    </span>
-                  </div>
+                    <div>
+                      <h4 className="text-base sm:text-lg font-extrabold text-slate-900">
+                        {event.title}
+                      </h4>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5">
+                        Attending: <strong className="text-slate-800">{doc?.name || 'Attending Physician'}</strong> ({doc?.specialty || 'General'}) • {doc?.clinic || 'Clinical Center'}
+                      </p>
+                    </div>
 
-                  <div>
-                    <h4 className="text-base sm:text-lg font-extrabold text-slate-900">
-                      {event.title}
-                    </h4>
-                    <p className="text-xs text-slate-500 font-medium mt-0.5">
-                      Attending: <strong className="text-slate-800">{doc?.name}</strong> ({doc?.specialty}) • {doc?.clinic}
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal">
+                      {event.description}
                     </p>
-                  </div>
 
-                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal">
-                    {event.description}
-                  </p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-200/80 text-xs">
-                    <div className="flex items-center gap-1.5 text-slate-600">
-                      <strong className="text-slate-800">Duration:</strong>
-                      <span>{event.duration}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-slate-600">
-                      <strong className="text-slate-800">Clinical Outcome:</strong>
-                      <span className="line-clamp-1">{event.outcome}</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-200/80 text-xs">
+                      <div className="flex items-center gap-1.5 text-slate-600">
+                        <strong className="text-slate-800">Duration:</strong>
+                        <span>{event.duration}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-600">
+                        <strong className="text-slate-800">Clinical Outcome:</strong>
+                        <span className="line-clamp-1">{event.outcome}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      {/* Add Lifelong Medical Record Modal */}
+      <AddMedicalRecordModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        initialTab={addModalInitialTab}
+      />
     </div>
   );
 }

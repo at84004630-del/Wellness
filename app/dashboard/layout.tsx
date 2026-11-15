@@ -5,11 +5,11 @@ import {
   LayoutDashboard, 
   Pill, 
   CalendarDays, 
-  Bell, 
   ShieldCheck, 
   ArrowLeft,
   UserCheck
 } from 'lucide-react';
+import NotificationCenter from '@/components/NotificationCenter';
 
 export default function DashboardLayout({
   children,
@@ -50,15 +50,19 @@ export default function DashboardLayout({
               </span>
             </div>
 
-            {/* Right: Quick actions & Link back to Companion */}
+            {/* Right: Quick actions, Notification Center & Link back to Companion */}
             <div className="flex items-center gap-3">
               <Link
                 href="/companion"
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg border border-slate-200 transition"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Switch to Elderly Companion UI</span>
+                <span className="hidden sm:inline">Switch to Companion UI</span>
+                <span className="sm:hidden">Companion</span>
               </Link>
+
+              {/* Real-time Caregiver Notification Center */}
+              <NotificationCenter />
 
               <div className="h-4 w-px bg-slate-200 hidden sm:block" />
 
