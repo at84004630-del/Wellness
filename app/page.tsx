@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useWellnessStore } from '@/lib/store';
@@ -8,38 +8,42 @@ import {
   HeartHandshake, 
   ShieldCheck, 
   Sparkles, 
-  Eye, 
   BellRing, 
   ArrowRight, 
   Activity, 
   UserCheck,
   Lock,
   Smartphone,
-  LayoutDashboard
+  LayoutDashboard,
+  Loader2
 } from 'lucide-react';
 
 export default function EntryRoleSelectorPage() {
   const router = useRouter();
-  const { switchUserRole, currentUser, medications, schedules } = useWellnessStore();
+  const { switchUserRole, medications, schedules } = useWellnessStore();
   const [passcode, setPasscode] = useState('');
   const [caregiverLocked, setCaregiverLocked] = useState(false);
   const [passcodeError, setPasscodeError] = useState(false);
+  const [navigatingTo, setNavigatingTo] = useState<'companion' | 'dashboard' | null>(null);
 
-  const handleSelectCompanion = () => {
-    switchUserRole('elderly');
-    router.push('/companion');
-  };
+  // Instant route prefetching into browser memory for sub-10ms transitions
+  useEffect(() => {
+    router.prefetch('/companion');
+    router.prefetch('/dashboard');
+  }, [router]);
 
   const handleSelectDashboard = (e: React.FormEvent) => {
     e.preventDefault();
     if (caregiverLocked) {
       if (passcode === '1234' || passcode === '') {
+        setNavigatingTo('dashboard');
         switchUserRole('caregiver');
         router.push('/dashboard');
       } else {
         setPasscodeError(true);
       }
     } else {
+      setNavigatingTo('dashboard');
       switchUserRole('caregiver');
       router.push('/dashboard');
     }
@@ -141,13 +145,27 @@ export default function EntryRoleSelectorPage() {
             </div>
 
             <div className="mt-8 pt-6 relative z-10">
-              <button
-                onClick={handleSelectCompanion}
+              <Link
+                href="/companion"
+                prefetch={true}
+                onClick={() => {
+                  setNavigatingTo('companion');
+                  switchUserRole('elderly');
+                }}
                 className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 text-lg font-bold text-white shadow-md shadow-emerald-700/20 hover:from-emerald-700 hover:to-teal-700 active:scale-[0.99] transition duration-150 focus-visible:ring-4 focus-visible:ring-emerald-300 cursor-pointer"
               >
-                <span>Launch Companion Mode</span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
+                {navigatingTo === 'companion' ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Launching Companion Mode...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Launch Companion Mode</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
+              </Link>
               <p className="text-center text-xs text-slate-500 mt-2 font-medium">
                 {pendingDoses > 0 ? `${pendingDoses} scheduled dose(s) awaiting verification today` : 'All daily morning doses completed'}
               </p>
@@ -198,8 +216,30 @@ export default function EntryRoleSelectorPage() {
             </div>
 
             <div className="mt-8 pt-6 relative z-10">
-              <form onSubmit={handleSelectDashboard} className="space-y-3">
-                {caregiverLocked && (
+              {!caregiverLocked ? (
+                <Link
+                  href="/dashboard"
+                  prefetch={true}
+                  onClick={() => {
+                    setNavigatingTo('dashboard');
+                    switchUserRole('caregiver');
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-4 text-lg font-bold text-white shadow hover:bg-slate-800 active:scale-[0.99] transition duration-150 focus-visible:ring-4 focus-visible:ring-slate-400 cursor-pointer"
+                >
+                  {navigatingTo === 'dashboard' ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Opening Command Center...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Open Caregiver Dashboard</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
+                </Link>
+              ) : (
+                <form onSubmit={handleSelectDashboard} className="space-y-3">
                   <div>
                     <input
                       type="password"
@@ -218,16 +258,26 @@ export default function EntryRoleSelectorPage() {
                       </p>
                     )}
                   </div>
-                )}
 
-                <button
-                  type="submit"
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-4 text-lg font-bold text-white shadow hover:bg-slate-800 active:scale-[0.99] transition duration-150 focus-visible:ring-4 focus-visible:ring-slate-400"
-                >
-                  <span>Open Caregiver Dashboard</span>
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </form>
+                  <button
+                    type="submit"
+                    disabled={navigatingTo === 'dashboard'}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-4 text-lg font-bold text-white shadow hover:bg-slate-800 active:scale-[0.99] transition duration-150 focus-visible:ring-4 focus-visible:ring-slate-400 cursor-pointer"
+                  >
+                    {navigatingTo === 'dashboard' ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span>Opening Command Center...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Open Caregiver Dashboard</span>
+                        <ArrowRight className="w-5 h-5" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
               <div className="flex items-center justify-center gap-2 mt-2">
                 <button
                   type="button"
@@ -259,4 +309,3 @@ export default function EntryRoleSelectorPage() {
     </main>
   );
 }
-

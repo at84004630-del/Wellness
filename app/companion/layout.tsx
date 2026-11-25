@@ -78,6 +78,7 @@ export default function CompanionLayout({
             {/* Exit to Caregiver Portal */}
             <Link
               href="/dashboard"
+              prefetch={true}
               className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-3 rounded-2xl border border-slate-300 transition"
               title="Caregiver Settings"
             >

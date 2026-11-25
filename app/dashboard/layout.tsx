@@ -27,7 +27,7 @@ export default function DashboardLayout({
           <div className="flex items-center justify-between h-16">
             {/* Left: Branding & Role Badge */}
             <div className="flex items-center gap-4">
-              <Link href="/" className="flex items-center gap-2 group">
+              <Link href="/" prefetch={true} className="flex items-center gap-2 group">
                 <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-xs group-hover:bg-emerald-700 transition">
                   <HeartHandshake className="w-5 h-5" />
                 </div>
@@ -57,6 +57,7 @@ export default function DashboardLayout({
             <div className="flex items-center gap-3">
               <Link
                 href="/companion"
+                prefetch={true}
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg border border-slate-200 transition"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />

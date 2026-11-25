@@ -29,7 +29,6 @@ import {
   Plus
 } from 'lucide-react';
 import MedicalRecordBook from '@/components/MedicalRecordBook';
-import AddMedicalRecordModal from '@/components/AddMedicalRecordModal';
 import AddMedicationForm from '@/components/AddMedicationForm';
 import DemoControls from '@/components/DemoControls';
 import AICopilotQueryBar from '@/components/AICopilotQueryBar';
@@ -51,7 +50,6 @@ export default function CaregiverDashboardPage() {
 
   const [activeTab, setActiveTab] = useState<'overview' | 'records' | 'add-med' | 'brief' | 'symptoms' | 'medications' | 'appointments'>('overview');
   const [simulatedEmailSent, setSimulatedEmailSent] = useState<string | null>(null);
-  const [isAddRecordOpen, setIsAddRecordOpen] = useState(false);
 
   const takenCount = schedules.filter(s => s.status === 'taken').length;
   const pendingCount = schedules.filter(s => s.status === 'pending').length;
@@ -757,11 +755,6 @@ export default function CaregiverDashboardPage() {
           </div>
         </div>
       )}
-      {/* Add Lifelong Medical Record Modal */}
-      <AddMedicalRecordModal
-        isOpen={isAddRecordOpen}
-        onClose={() => setIsAddRecordOpen(false)}
-      />
     </div>
   );
 }
