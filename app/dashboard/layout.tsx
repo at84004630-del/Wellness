@@ -16,9 +16,13 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-slate-100/60 to-slate-50 flex flex-col relative">
+      {/* Background Ambient Glows */}
+      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-emerald-200/20 rounded-full filter blur-3xl pointer-events-none -z-0" />
+      <div className="absolute top-1/2 left-10 w-[450px] h-[450px] bg-cyan-200/15 rounded-full filter blur-3xl pointer-events-none -z-0" />
+
       {/* Top Clinical Navigation Bar */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs">
+      <header className="sticky top-0 z-40 glass-panel border-b border-slate-200/80 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Left: Branding & Role Badge */}
@@ -80,7 +84,7 @@ export default function DashboardLayout({
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         {children}
       </main>
     </div>

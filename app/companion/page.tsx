@@ -212,90 +212,137 @@ export default function VoiceCompanionPage() {
       </div>
 
       {/* Central Ambient Voice Orb & Soundwave Interface */}
-      <div className="bg-gradient-to-b from-white to-slate-50 border-2 border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden">
-        {/* Glow backdrop */}
-        <div className={`absolute w-72 h-72 rounded-full filter blur-3xl opacity-30 transition-all duration-700 pointer-events-none ${
+      <div className="glass-panel p-6 sm:p-10 rounded-3xl flex flex-col items-center justify-center text-center relative overflow-hidden transition-all duration-500">
+        {/* Dynamic Multi-layered Aurora Backdrop */}
+        <div className={`absolute w-80 h-80 rounded-full filter blur-3xl opacity-40 transition-all duration-700 pointer-events-none animate-aura-spin ${
           aiState === 'listening' 
-            ? 'bg-rose-400 scale-125' 
+            ? 'bg-gradient-to-tr from-rose-500 via-pink-400 to-amber-300 scale-125' 
             : aiState === 'thinking'
-            ? 'bg-amber-400 scale-110'
+            ? 'bg-gradient-to-tr from-amber-400 via-orange-400 to-yellow-300 scale-110'
             : aiState === 'speaking'
-            ? 'bg-blue-400 scale-120'
-            : 'bg-emerald-400 scale-100'
+            ? 'bg-gradient-to-tr from-cyan-400 via-blue-500 to-indigo-400 scale-120'
+            : 'bg-gradient-to-tr from-emerald-400 via-teal-300 to-cyan-300 scale-100 animate-ambient-breath'
         }`} />
+
+        {/* Cognitive Synthesis State Pill */}
+        <div className="relative z-10 mb-2">
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider transition-all shadow-xs ${
+            aiState === 'listening'
+              ? 'bg-rose-100 text-rose-800 border border-rose-300'
+              : aiState === 'thinking'
+              ? 'bg-amber-100 text-amber-800 border border-amber-300'
+              : aiState === 'speaking'
+              ? 'bg-cyan-100 text-cyan-800 border border-cyan-300'
+              : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${
+              aiState === 'listening' ? 'bg-rose-500 animate-ping' :
+              aiState === 'thinking' ? 'bg-amber-500 animate-spin' :
+              aiState === 'speaking' ? 'bg-cyan-500 animate-pulse' :
+              'bg-emerald-500'
+            }`} />
+            {aiState === 'listening' && 'Neural Ear Active • Capturing Audio Stream'}
+            {aiState === 'thinking' && 'Clinical NLP Engine • Parsing Medication & Symptoms'}
+            {aiState === 'speaking' && 'Empathetic Speech Synthesis • Transmitting Guidance'}
+            {aiState === 'idle' && 'Ambient Assistant Online • Ready for Eleanor'}
+          </span>
+        </div>
 
         {/* Central Interactive Voice Orb */}
         <div className="relative z-10 my-4 flex flex-col items-center">
           <button
             onClick={toggleMicListening}
-            className={`w-32 h-32 sm:w-40 sm:h-40 rounded-full flex flex-col items-center justify-center shadow-xl transition-all duration-300 relative group focus:outline-hidden ${
+            className={`w-36 h-36 sm:w-44 sm:h-44 rounded-full flex flex-col items-center justify-center shadow-2xl transition-all duration-500 relative group focus:outline-hidden cursor-pointer ${
               aiState === 'listening'
-                ? 'bg-rose-600 text-white ring-8 ring-rose-200 scale-105 animate-pulse'
+                ? 'bg-gradient-to-br from-rose-500 to-rose-600 text-white ring-8 ring-rose-200/80 scale-105 neural-glow-rose'
                 : aiState === 'thinking'
-                ? 'bg-amber-600 text-white ring-8 ring-amber-200'
+                ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white ring-8 ring-amber-200/80 neural-glow-amber animate-pulse'
                 : aiState === 'speaking'
-                ? 'bg-blue-600 text-white ring-8 ring-blue-200 scale-105'
-                : 'bg-emerald-600 text-white hover:bg-emerald-700 ring-8 ring-emerald-100 hover:ring-emerald-200 active:scale-95'
+                ? 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white ring-8 ring-cyan-200/80 scale-105 neural-glow-cyan'
+                : 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 ring-8 ring-emerald-100/90 hover:ring-emerald-200/90 active:scale-95 neural-glow'
             }`}
           >
             {aiState === 'listening' ? (
               <>
-                <Mic className="w-14 h-14 animate-bounce" />
+                <Mic className="w-16 h-16 animate-bounce" />
                 <span className="text-[11px] font-black uppercase tracking-wider mt-1">Listening...</span>
               </>
             ) : aiState === 'thinking' ? (
               <>
-                <Sparkles className="w-14 h-14 animate-spin" />
-                <span className="text-[11px] font-black uppercase tracking-wider mt-1">Understanding...</span>
+                <Sparkles className="w-16 h-16 animate-spin" />
+                <span className="text-[11px] font-black uppercase tracking-wider mt-1">Synthesizing...</span>
               </>
             ) : aiState === 'speaking' ? (
               <>
-                <Volume2 className="w-14 h-14 animate-pulse" />
+                <Volume2 className="w-16 h-16 animate-pulse" />
                 <span className="text-[11px] font-black uppercase tracking-wider mt-1">Speaking...</span>
               </>
             ) : (
               <>
-                <Mic className="w-14 h-14 group-hover:scale-110 transition-transform" />
+                <Mic className="w-16 h-16 group-hover:scale-110 transition-transform" />
                 <span className="text-xs font-black uppercase tracking-wider mt-1">Tap to Speak</span>
               </>
             )}
           </button>
 
-          {/* Status Label */}
-          <div className="mt-4">
-            <p className="text-lg font-bold text-slate-900">
-              {aiState === 'listening' && 'Listening to you... Speak anytime'}
-              {aiState === 'thinking' && 'AI is understanding your medicine & symptoms...'}
-              {aiState === 'speaking' && 'Wellness Companion is replying...'}
-              {aiState === 'idle' && (allDosesTaken ? 'All medicines recorded! Rest comfortably.' : 'Tap the microphone to speak with Wellness')}
-            </p>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Natural speech recognition with dual medicine & symptom understanding
+          {/* Real-time Dynamic Audio Soundwave Bars */}
+          <div className="flex items-center gap-1.5 h-10 my-3">
+            {[10, 24, 14, 34, 20, 38, 16, 28, 12].map((heightVal, idx) => (
+              <span
+                key={idx}
+                className={`w-1.5 rounded-full transition-all duration-300 ${
+                  aiState === 'listening' 
+                    ? 'bg-rose-500 animate-pulse' 
+                    : aiState === 'speaking'
+                    ? 'bg-cyan-500 animate-bounce'
+                    : aiState === 'thinking'
+                    ? 'bg-amber-400'
+                    : 'bg-emerald-300/60'
+                }`}
+                style={{ 
+                  height: aiState !== 'idle' ? `${heightVal}px` : '6px',
+                  animationDelay: `${idx * 100}ms`
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Status Headline */}
+          <div className="mt-1">
+            <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+              {aiState === 'listening' && 'Listening to you... Speak in your natural voice'}
+              {aiState === 'thinking' && 'AI is understanding your medicine intake & symptoms...'}
+              {aiState === 'speaking' && 'Wellness Voice Companion is answering...'}
+              {aiState === 'idle' && (allDosesTaken ? 'All doses recorded for today! Rest comfortably.' : 'Tap the microphone to speak with Wellness')}
+            </h3>
+            <p className="text-xs text-slate-500 font-medium mt-1">
+              Ambient dual-intent parsing: automatically logs verified pills and health notes directly to your lifelong EHR.
             </p>
           </div>
         </div>
 
         {/* One-Tap Voice Presets (Designed for Easy Senior Testing & Accessibility) */}
-        <div className="w-full mt-4 pt-4 border-t border-slate-200/80">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
-            Quick Spoken Examples (Tap to simulate speaking):
+        <div className="w-full mt-3 pt-4 border-t border-slate-200/80 relative z-10">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center justify-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Interactive Voice Prompts (Tap to test AI natural speech response):</span>
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2">
             <button
               onClick={() => handlePresetChoice("I just took it, but my knee hurts today.")}
-              className="text-xs sm:text-sm font-semibold bg-white hover:bg-slate-100 text-slate-800 border-2 border-slate-300 hover:border-emerald-500 px-4 py-2.5 rounded-2xl shadow-xs transition"
+              className="text-xs sm:text-sm font-semibold bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 hover:border-emerald-500 px-4 py-2.5 rounded-2xl shadow-2xs hover:shadow-sm active:scale-95 transition cursor-pointer"
             >
               🗣️ &quot;I just took it, but my knee hurts today&quot;
             </button>
             <button
               onClick={() => handlePresetChoice("I took all my morning pills and I'm feeling wonderful today.")}
-              className="text-xs sm:text-sm font-semibold bg-white hover:bg-slate-100 text-slate-800 border-2 border-slate-300 hover:border-emerald-500 px-4 py-2.5 rounded-2xl shadow-xs transition"
+              className="text-xs sm:text-sm font-semibold bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 hover:border-emerald-500 px-4 py-2.5 rounded-2xl shadow-2xs hover:shadow-sm active:scale-95 transition cursor-pointer"
             >
               🗣️ &quot;Took my morning pills and feel wonderful&quot;
             </button>
             <button
               onClick={() => handlePresetChoice("I took my medicine, but I felt a little dizzy when standing up.")}
-              className="text-xs sm:text-sm font-semibold bg-white hover:bg-slate-100 text-slate-800 border-2 border-slate-300 hover:border-emerald-500 px-4 py-2.5 rounded-2xl shadow-xs transition"
+              className="text-xs sm:text-sm font-semibold bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 hover:border-emerald-500 px-4 py-2.5 rounded-2xl shadow-2xs hover:shadow-sm active:scale-95 transition cursor-pointer"
             >
               🗣️ &quot;Took pills, but felt dizzy standing up&quot;
             </button>

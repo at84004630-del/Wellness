@@ -32,6 +32,8 @@ import MedicalRecordBook from '@/components/MedicalRecordBook';
 import AddMedicalRecordModal from '@/components/AddMedicalRecordModal';
 import AddMedicationForm from '@/components/AddMedicationForm';
 import DemoControls from '@/components/DemoControls';
+import AICopilotQueryBar from '@/components/AICopilotQueryBar';
+import DrugConflictVisualizer from '@/components/DrugConflictVisualizer';
 
 export default function CaregiverDashboardPage() {
   const { 
@@ -115,6 +117,9 @@ export default function CaregiverDashboardPage() {
 
       {/* 2. Hackathon Demo Controls & Presentation Sandbox */}
       <DemoControls />
+
+      {/* 3. AI Clinical Intelligence Copilot Spotlight Bar */}
+      <AICopilotQueryBar />
 
       {/* Top Clinical Navigation Bar & Tab Switcher */}
       <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
@@ -231,60 +236,72 @@ export default function CaregiverDashboardPage() {
 
       {/* Top 4 KPI Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Adherence Score</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
-              <Activity className="w-4 h-4" />
+        <div className="glass-card-interactive p-5 sm:p-6 rounded-3xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-100/40 rounded-bl-full -z-0 group-hover:scale-110 transition-transform" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-500">Adherence Score</span>
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200 shadow-2xs">
+                <Activity className="w-4 h-4" />
+              </div>
             </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">{adherenceRate}%</span>
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Voice-verified</span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1 font-medium">Optimal geriatric compliance today</p>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-900">{adherenceRate}%</span>
-            <span className="text-xs font-semibold text-emerald-600">Voice-verified</span>
-          </div>
-          <p className="text-xs text-slate-500 mt-1">High compliance today</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Today&apos;s Doses</span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
-              <Clock className="w-4 h-4" />
+        <div className="glass-card-interactive p-5 sm:p-6 rounded-3xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-100/40 rounded-bl-full -z-0 group-hover:scale-110 transition-transform" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-500">Today&apos;s Doses</span>
+              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-200 shadow-2xs">
+                <Clock className="w-4 h-4" />
+              </div>
             </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">{takenCount}/{schedules.length}</span>
+              <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">Taken</span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1 font-medium">{pendingCount} remaining today</p>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-900">{takenCount}/{schedules.length}</span>
-            <span className="text-xs font-semibold text-slate-600">Taken</span>
-          </div>
-          <p className="text-xs text-slate-500 mt-1">{pendingCount} remaining today</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Reported Symptoms</span>
-            <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center">
-              <Stethoscope className="w-4 h-4" />
+        <div className="glass-card-interactive p-5 sm:p-6 rounded-3xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-purple-100/40 rounded-bl-full -z-0 group-hover:scale-110 transition-transform" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-500">Reported Symptoms</span>
+              <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center border border-purple-200 shadow-2xs">
+                <Stethoscope className="w-4 h-4" />
+              </div>
             </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">{symptoms.length}</span>
+              <span className="text-xs font-bold text-purple-800 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">Past 14 Days</span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1 font-medium">Pre-Appointment brief ready</p>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-900">{symptoms.length}</span>
-            <span className="text-xs font-semibold text-purple-700">Past 14 Days</span>
-          </div>
-          <p className="text-xs text-slate-500 mt-1">Pre-Appointment brief ready</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Next Doctor Visit</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
-              <Calendar className="w-4 h-4 shrink-0" />
+        <div className="glass-card-interactive p-5 sm:p-6 rounded-3xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-100/40 rounded-bl-full -z-0 group-hover:scale-110 transition-transform" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-500">Next Doctor Visit</span>
+              <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200 shadow-2xs shrink-0">
+                <Calendar className="w-4 h-4 shrink-0" />
+              </div>
             </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">In 4 Days</span>
+              <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">Cardiology</span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1 font-medium">Dr. Robert Chen • 10:30 AM</p>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-xl font-extrabold text-slate-900">In 4 Days</span>
-            <span className="text-xs font-semibold text-amber-700">Cardiology</span>
-          </div>
-          <p className="text-xs text-slate-500 mt-1">Dr. Robert Chen • 10:30 AM</p>
         </div>
       </div>
 
@@ -372,6 +389,9 @@ export default function CaregiverDashboardPage() {
                 </div>
               </div>
             )}
+
+            {/* Interactive Neural Drug Compatibility & Conflict Visualizer */}
+            <DrugConflictVisualizer />
 
             {/* Today's Live Schedule */}
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">

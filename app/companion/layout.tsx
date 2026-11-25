@@ -31,9 +31,13 @@ export default function CompanionLayout({
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans select-none">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-emerald-50/25 to-slate-50 text-slate-900 flex flex-col font-sans select-none relative overflow-hidden">
+      {/* Ambient Breathing Light Blooms */}
+      <div className="absolute top-0 right-10 w-96 h-96 bg-emerald-300/15 rounded-full filter blur-3xl pointer-events-none animate-ambient-breath" />
+      <div className="absolute bottom-10 left-10 w-96 h-96 bg-teal-200/15 rounded-full filter blur-3xl pointer-events-none" />
+
       {/* High-Contrast Accessible Companion Header */}
-      <header className="bg-white border-b-2 border-slate-200 px-6 sm:px-10 py-5">
+      <header className="glass-panel border-b border-slate-200 px-6 sm:px-10 py-5 sticky top-0 z-30">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           {/* Greeting & Date */}
           <div className="flex items-center gap-4">
@@ -85,7 +89,7 @@ export default function CompanionLayout({
       </header>
 
       {/* Main Full-Screen Tablet Area */}
-      <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-8 flex flex-col justify-start">
+      <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-8 flex flex-col justify-start relative z-10">
         {children}
       </main>
     </div>

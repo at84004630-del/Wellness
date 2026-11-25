@@ -10,7 +10,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -21,3 +21,116 @@ body {
   outline-offset: 2px;
 }
 
+/* Modern AI Glassmorphism & Neural Shimmer Utilities */
+@layer utilities {
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(226, 232, 240, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+  }
+
+  .glass-panel-dark {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  }
+
+  .glass-card-interactive {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .glass-card-interactive:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 16px 36px -10px rgba(16, 185, 129, 0.12), 0 0 0 1px rgba(16, 185, 129, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .neural-glow {
+    box-shadow: 0 0 35px -5px rgba(16, 185, 129, 0.35);
+  }
+
+  .neural-glow-amber {
+    box-shadow: 0 0 35px -5px rgba(245, 158, 11, 0.35);
+  }
+
+  .neural-glow-cyan {
+    box-shadow: 0 0 35px -5px rgba(6, 182, 212, 0.35);
+  }
+
+  .neural-glow-rose {
+    box-shadow: 0 0 35px -5px rgba(244, 63, 94, 0.35);
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Keyframe animations for Living AI elements */
+@keyframes ambientBreath {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.7;
+  }
+}
+
+@keyframes laserScan {
+  0% {
+    top: 5%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 90%;
+    opacity: 1;
+  }
+  100% {
+    top: 5%;
+    opacity: 0.8;
+  }
+}
+
+@keyframes waveOscillate {
+  0%, 100% {
+    height: 8px;
+  }
+  50% {
+    height: 32px;
+  }
+}
+
+@keyframes auraRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-ambient-breath {
+  animation: ambientBreath 4s ease-in-out infinite;
+}
+
+.animate-laser-scan {
+  animation: laserScan 2.5s ease-in-out infinite;
+}
+
+.animate-aura-spin {
+  animation: auraRotate 25s linear infinite;
+}

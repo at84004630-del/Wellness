@@ -447,17 +447,29 @@ export default function PillScannerModal({
           {/* Holographic Pill Alignment Reticle (Visible during camera live view) */}
           {cameraActive && !capturedImage && !isAnalyzing && (
             <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-6">
-              {/* Target Oval HUD */}
-              <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-full border-2 border-dashed border-emerald-400/80 flex items-center justify-center relative animate-pulse shadow-[0_0_20px_rgba(52,211,153,0.3)]">
+              {/* Dynamic Animated Laser Scanning Line */}
+              <div className="absolute inset-x-12 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_20px_#10b981] animate-laser-scan" />
+
+              {/* Target Oval HUD with AR Corner Brackets */}
+              <div className="w-52 h-52 sm:w-60 sm:h-60 rounded-3xl border-2 border-emerald-400/60 flex items-center justify-center relative animate-pulse shadow-[0_0_30px_rgba(52,211,153,0.25)]">
+                {/* Holographic Corner Accents */}
+                <span className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-emerald-400" />
+                <span className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-emerald-400" />
+                <span className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-emerald-400" />
+                <span className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-emerald-400" />
+
                 {/* Horizontal crosshair */}
                 <div className="absolute w-full h-px bg-emerald-400/40" />
                 {/* Vertical crosshair */}
                 <div className="absolute h-full w-px bg-emerald-400/40" />
                 {/* Center marker */}
-                <div className="w-3 h-3 rounded-full bg-emerald-400" />
+                <div className="w-3.5 h-3.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]" />
               </div>
-              <div className="mt-4 bg-slate-900/85 backdrop-blur-xs text-emerald-300 border border-emerald-500/40 text-xs font-mono font-bold px-4 py-1.5 rounded-full shadow-lg">
-                Position pill inside target circle
+
+              {/* HUD Telemetry Badge */}
+              <div className="mt-4 bg-slate-900/90 backdrop-blur-md text-emerald-300 border border-emerald-500/50 text-xs font-mono font-bold px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span>AR Optical HUD: Align {medication.name} ({medication.visual.shape})</span>
               </div>
             </div>
           )}
